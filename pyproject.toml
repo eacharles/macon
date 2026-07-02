@@ -1,0 +1,222 @@
+[project]
+# https://packaging.python.org/en/latest/specifications/declaring-project-metadata/
+name = "macon"
+description = "Support for CRUD database operations accross several framework layers"
+license = { file = "LICENSE" }
+readme = "README.md"
+# https://pypi.org/classifiers/
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.13",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "Natural Language :: English",
+    "Operating System :: POSIX",
+    "Typing :: Typed",
+]
+requires-python = ">=3.13"
+dynamic = ["version"]
+authors = [
+    { name = "Eric Charles", email = "echarles@slac.stanford.edu" },
+]
+
+dependencies = [
+    "pydantic",
+    "pydantic_settings",
+    "python-dotenv",
+    "tabulate",
+    "pyyaml",
+    "numpy",
+]
+
+
+[project.optional-dependencies]
+db = [
+    "sqlalchemy",
+    "structlog",
+    "greenlet",
+    "anyio",
+    "aiosqlite",
+    "aiofiles",
+]
+
+server = [
+    "macon[db]",
+    "fastapi",
+    "slowapi",
+    "uvicorn",
+]
+
+client = [
+    "httpx",
+]
+
+dev = [
+    "macon[db]",
+    "macon[server]",
+    "macon[client]",
+    "pytest",
+    "pytest-asyncio",
+    "pytest-cov>=6.0.0",
+    "pytest-timeout>=2.3.1",
+    "mypy",
+    "ruff>=0.8.0",
+    "pylint",
+    "types-pyyaml>=6.0.12.20240917",
+    "types-tabulate>=0.9.0.20240106",
+]
+
+docs = [
+    "nbsphinx",
+    "sphinx",
+    "sphinx-autodoc-typehints",
+    "sphinx_rtd_theme",
+    "sphinx-autoapi",
+    "sphinx-tabs",
+    "sphinx-click",
+]
+
+all = [
+    "macon[server]",
+    "macon[client]",
+    "macon[dev]",
+    "macon[docs]",
+]
+
+
+[project.scripts]
+macon-local = "macon.cli.local.top:cli"
+macon-server = "macon.cli.server.top:serve"
+macon-remote = "macon.cli.remote.top:cli"
+
+
+[project.urls]
+Source = "https://github.com/eacharles/macon"
+
+[build-system]
+requires = ["setuptools>=62", "wheel", "setuptools_scm[toml]>=6.2"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools_scm]
+write_to = "src/macon/_version.py"
+
+[tool.coverage.run]
+parallel = true
+source = ["macon"]
+omit = [
+    "web_app.py",
+    "worker.py",
+    "main.py",
+    "test_files.py",
+    "healthz.py",
+]
+
+[tool.coverage.paths]
+source = ["src"]
+
+[tool.coverage.report]
+show_missing = true
+exclude_lines = [
+    "pragma: no cover",
+    "unexpected",
+    "as uexc:",
+    "def __repr__",
+    "if settings.DEBUG",
+    "forward_to_db_funcs",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+]
+
+
+[tool.ruff]
+exclude = [
+    "__init__.py",
+]
+line-length = 110
+target-version = "py313"
+
+[tool.ruff.lint]
+ignore = [
+    "COM812",  # missing-trailing-comma
+    "N802",  # invalid-function-name
+    "N803",  # invalid-argument-name
+    "N806",  # non-lowercase-variable-in-function
+    "N812",  # lowercase-imported-as-non-lowercase
+    "N813",  # camelcase-imported-as-constant
+    "N815",  # mixed-case-variable-in-class-scope
+    "N816",  # mixed-case-variable-in-global-scope
+]
+select = [
+    "E",  # pycodestyle
+    "F",  # pyflakes
+    "N",  # pep8-naming
+    "W",  # pycodestyle
+    "COM", # pyflakes-commas
+    "FBT", # flake8-boolean-trap
+    "UP", # pyupgrade
+    "ASYNC", # flake8-async
+]
+extend-select = [
+    "RUF100", # Warn about unused noqa
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["macon", "tests"]
+
+[tool.ruff.lint.pycodestyle]
+max-doc-length = 110
+
+[tool.ruff.lint.pydocstyle]
+convention = "numpy"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+filterwarnings = [
+    "ignore:coroutine.*was never awaited:RuntimeWarning",
+    "ignore::ResourceWarning",
+    "ignore:.*HTTP_422_UNPROCESSABLE_CONTENT:DeprecationWarning",
+]
+python_files = ["tests/*.py", "tests/*/*.py"]
+addopts = [
+    "--cov=src",
+    "--cov-report=html",
+]
+
+[tool.mypy]
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+ignore_missing_imports = true
+local_partial_types = true
+no_implicit_reexport = true
+show_error_codes = true
+strict_equality = true
+warn_redundant_casts = true
+warn_unreachable = true
+warn_unused_ignores = true
+plugins = ["sqlalchemy.ext.mypy.plugin", "pydantic.mypy"]
+
+[tool.pydocstyle]
+convention = "numpy"
+add_select = [
+    "D212",
+]
+add-ignore = [
+    "D105",
+    "D102",
+    "D100",
+    "D200",
+    "D205",
+    "D400",
+    "D401",
+    "D106",
+]
+
+[tool.pylint.'MESSAGES CONTROL']
+max-line-length = 120
+disable = "W0718, W1203, C0116, C0114, C0103, C0302, R0902, R0903, R0912, R0913, R0917, R0914, R0915, R0801, R0904, R1735"

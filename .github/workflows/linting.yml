@@ -1,0 +1,33 @@
+# This workflow will install Python dependencies,
+# then perform static linting analysis.
+
+name: Lint
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.13'
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          python -m pip install --upgrade pip
+          pip install .
+          pip install .[dev]
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+      - name: Type checking
+        run: |
+          mypy src
+      - name: Linting
+        run: |
+          ruff check src tests
