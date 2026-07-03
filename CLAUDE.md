@@ -45,6 +45,13 @@ The package includes example/test tables demonstrating the patterns:
 - `TestRef` — table with a foreign key reference to TestNamed
 - `TestListPair` — table storing paired lists of values (JSON columns)
 
+## Transaction Management
+
+The `db_funcs` layer (read, filter, update, delete) only flushes — it never commits or rolls back. Transaction lifecycle is owned by the caller:
+- `get_session()` auto-commits on successful context exit, rolls back on exception
+- `@with_session_transaction` wraps in `session.begin()` for explicit boundaries
+- Direct session management for fine-grained control
+
 ## Development
 
 ### Setup
@@ -55,13 +62,26 @@ make init          # creates .venv via uv, installs pre-commit hooks
 ### Testing
 ```bash
 make test-sqlite   # runs pytest with SQLite backend (sets DB__URL)
+pytest tests/      # 369 tests, 73% coverage
 ```
 
 ### Linting & Type Checking
 ```bash
 make lint          # pre-commit (ruff format + lint, trailing whitespace, yamllint)
 make typing        # mypy src tests
+ruff check src/ tests/   # lint
+ruff format src/ tests/  # format
+pylint src/macon/        # 9.98/10
 ```
+
+### Documentation
+```bash
+pip install -e ".[docs,db,server,client]"
+cd docs && make html     # builds to docs/_build/html/
+```
+- Sphinx with `sphinx-autoapi` (API docs from source), `sphinx-click` (CLI docs)
+- ReadTheDocs config: `.readthedocs.yaml`
+- Docs source: `docs/` (index, getting_started, user_guide/, api/)
 
 ### Configuration
 - Environment variable nesting delimiter: `__` (e.g., `DB__URL`, `STORAGE__ARCHIVE`)
@@ -85,3 +105,4 @@ make typing        # mypy src tests
 ### CI
 - GitHub Actions: tests on Python 3.13, lint, docs, publish-to-pypi
 - Test command: `pytest tests` with coverage
+- Docs workflow: builds Sphinx HTML, uploads artifact
