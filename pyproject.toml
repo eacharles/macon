@@ -29,7 +29,6 @@ dependencies = [
     "python-dotenv",
     "tabulate",
     "pyyaml",
-    "numpy",
 ]
 
 
@@ -181,8 +180,10 @@ filterwarnings = [
     "ignore:coroutine.*was never awaited:RuntimeWarning",
     "ignore::ResourceWarning",
     "ignore:.*HTTP_422_UNPROCESSABLE_CONTENT:DeprecationWarning",
+    "ignore::pytest.PytestCollectionWarning",
 ]
 python_files = ["tests/*.py", "tests/*/*.py"]
+python_classes = ["Test"]
 addopts = [
     "--cov=src",
     "--cov-report=html",

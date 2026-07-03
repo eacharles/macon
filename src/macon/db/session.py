@@ -17,7 +17,7 @@ def init_db(database_url: str | None = None, **engine_kwargs: Any) -> None:
 
     Parameters
     ----------
-    database_url : str
+    database_url
         Database connection string (e.g., 'sqlite+aiosqlite:///./test.db')
     **engine_kwargs
         Additional arguments to pass to create_async_engine
@@ -48,7 +48,6 @@ async def get_session() -> AsyncGenerator[AsyncSession]:
 
     Yields
     ------
-    AsyncSession
         An async SQLAlchemy session
 
     Raises

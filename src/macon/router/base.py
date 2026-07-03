@@ -2,16 +2,12 @@ from __future__ import annotations
 
 import logging
 from collections.abc import AsyncGenerator
-from pathlib import Path
 
 from fastapi import APIRouter, Body, Header, HTTPException, Query, status
-from fastapi.responses import StreamingResponse, FileResponse
-import tables_io
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, ValidationError
 
-from .. import local_async, models
-from ..config import config as global_config
-from ..common import LoadType, unexpected, str_to_slice
+from ..common import unexpected
 from ..db.base import Base
 from ..local_async import LocalOperations
 from ..models import CountResponse, DeleteResponse, FilterRequest, LookupResponse, OrderBy
@@ -25,7 +21,7 @@ def require_auth(authorization: str = Header(None)) -> str:
 
     Parameters
     ----------
-    authorization : str
+    authorization
         Authorization header value
 
     Raises
@@ -35,7 +31,6 @@ def require_auth(authorization: str = Header(None)) -> str:
 
     Returns
     -------
-    str
         The validated token
 
     Example
@@ -66,14 +61,13 @@ def validate_pagination_params(skip: int, limit: int | None) -> tuple[int, int |
 
     Parameters
     ----------
-    skip : int
+    skip
         Number of rows to skip
-    limit : int | None
+    limit
         Maximum rows to return
 
     Returns
     -------
-    tuple[int, int | None]
         Validated params
 
     Raises
@@ -98,12 +92,11 @@ def validate_batch_size(batch_size: int) -> int:
 
     Parameters
     ----------
-    batch_size : int
+    batch_size
         Batch size to validate
 
     Returns
     -------
-    int
         Validated batch size
 
     Raises
@@ -126,14 +119,13 @@ def create_table_router[T: Base, ResponseT: BaseModel, CreateT: BaseModel](
 
     Parameters
     ----------
-    name : str
+    name
         Name of the table (used for router prefix and tags)
-    operations : LocalOperations
+    operations
         The local operations instance for this table
 
     Returns
     -------
-    APIRouter
         FastAPI router with all CRUD endpoints
     """
     router = APIRouter(prefix=f"/{name}", tags=[name])

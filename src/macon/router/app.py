@@ -3,7 +3,7 @@ from collections.abc import AsyncIterator, Sequence
 from contextlib import asynccontextmanager
 from typing import Any
 
-from fastapi import FastAPI, Request, status
+from fastapi import APIRouter, FastAPI, Request, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -12,7 +12,6 @@ from slowapi.errors import RateLimitExceeded
 from slowapi.util import get_remote_address
 
 from ..db.session import init_db
-from .base import all_routers
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -23,10 +22,10 @@ def register_all_routers(app: FastAPI, all_routers: list[APIRouter], prefix: str
 
     Parameters
     ----------
-    app : FastAPI
+    app
         The FastAPI application instance
-    all_routers : 
-    prefix : str
+    all_routers :
+    prefix
         URL prefix for all API routes (default: "/api/v1")
 
     Example
@@ -36,11 +35,8 @@ def register_all_routers(app: FastAPI, all_routers: list[APIRouter], prefix: str
     >>> register_all_routers(app, prefix="/api/v2")
     """
     for router in all_routers:
-        # Include router with the API version prefix
         app.include_router(router, prefix=prefix)
         logger.info(f"Registered router: {router.prefix} at {prefix}{router.prefix}")
-
-    logger.info(f"Registered router: {funcs_router.prefix} at {prefix}{funcs_router.prefix}")
 
 
 def add_rate_limiting(
@@ -50,18 +46,17 @@ def add_rate_limiting(
 
     Parameters
     ----------
-    app : FastAPI
+    app
         The FastAPI application instance
-    default_limits : list[str] | None
+    default_limits
         Default rate limits (e.g., ["200 per day", "50 per hour"])
         If None, defaults to ["1000 per day", "100 per hour"]
-    storage_uri : str
+    storage_uri
         Storage URI for rate limit data (default: "memory://")
         For production, use Redis: "redis://localhost:6379"
 
     Returns
     -------
-    Limiter | None
         The limiter instance, or None if slowapi is not installed
 
     Example
@@ -108,7 +103,7 @@ def add_health_check(app: FastAPI) -> None:
 
     Parameters
     ----------
-    app : FastAPI
+    app
         The FastAPI application instance
 
     Note
@@ -123,7 +118,6 @@ def add_health_check(app: FastAPI) -> None:
 
         Returns
         -------
-        dict[str, Any]
             Status information
 
         Responses
@@ -151,7 +145,7 @@ def add_error_handlers(app: FastAPI) -> None:
 
     Parameters
     ----------
-    app : FastAPI
+    app
         The FastAPI application instance
 
     Note
@@ -240,16 +234,16 @@ def add_cors_middleware(
 
     Parameters
     ----------
-    app : FastAPI
+    app
         The FastAPI application instance
-    allow_origins : list[str] | None
+    allow_origins
         Allowed origins (default: ["*"])
         In production, specify exact origins instead of "*"
-    allow_credentials : bool
+    allow_credentials
         Whether to allow credentials (default: True)
-    allow_methods : list[str] | None
+    allow_methods
         Allowed HTTP methods (default: ["*"])
-    allow_headers : list[str] | None
+    allow_headers
         Allowed headers (default: ["*"])
 
     Warning
@@ -292,12 +286,11 @@ async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
 
     Parameters
     ----------
-    _app : FastAPI
+    _app
         The FastAPI application instance
 
     Yields
     ------
-    None
         Control is yielded during app lifetime
 
     Note
@@ -329,7 +322,7 @@ def create_fastapi_app(
     all_routers: list[APIRouter],
     title: str = "API",
     description: str = "FastAPI application",
-    version: str = "1.0.0",    
+    version: str = "1.0.0",
     *,
     enable_rate_limiting: bool = False,
     rate_limits: list[str] | None = None,
@@ -343,33 +336,32 @@ def create_fastapi_app(
 
     Parameters
     ----------
-    all_routers: 
+    all_routers:
         All of the routers to put in the app
-    title : str
+    title
         Application title (default: "API")
-    description : str
+    description
         Application description (default: "FastAPI application")
-    version : str
+    version
         Application version (default: "1.0.0")
-    enable_rate_limiting : bool
+    enable_rate_limiting
         Whether to enable rate limiting (default: False)
-    rate_limits : list[str] | None
+    rate_limits
         Rate limit rules (default: ["1000 per day", "100 per hour"])
-    rate_limit_storage : str
+    rate_limit_storage
         Storage URI for rate limiting (default: "memory://")
         For production: "redis://localhost:6379"
-    enable_cors : bool
+    enable_cors
         Whether to enable CORS (default: False)
-    cors_origins : list[str] | None
+    cors_origins
         Allowed CORS origins (default: ["*"])
-    api_prefix : str
+    api_prefix
         API route prefix (default: "/api/v1")
-    debug : bool
+    debug
         Debug mode (default: False)
 
     Returns
     -------
-    FastAPI
         Configured FastAPI application instance
 
     Example
@@ -418,9 +410,9 @@ def create_fastapi_app(
     return app
 
 
-def setup_fastapi_app(        
+def setup_fastapi_app(
     app: FastAPI,
-    all_routers: list[APIRouter],    
+    all_routers: list[APIRouter],
     *,
     enable_rate_limiting: bool = False,
     rate_limits: list[str] | None = None,
@@ -433,21 +425,21 @@ def setup_fastapi_app(
 
     Parameters
     ----------
-    app : FastAPI
+    app
         The FastAPI application instance
-    all_routers: 
+    all_routers:
         All of the routers to put in the app
-    enable_rate_limiting : bool
+    enable_rate_limiting
         Whether to enable rate limiting (default: False)
-    rate_limits : list[str] | None
+    rate_limits
         Rate limit rules (default: ["1000 per day", "100 per hour"])
-    rate_limit_storage : str
+    rate_limit_storage
         Storage URI for rate limiting (default: "memory://")
-    enable_cors : bool
+    enable_cors
         Whether to enable CORS (default: False)
-    cors_origins : list[str] | None
+    cors_origins
         Allowed CORS origins (default: ["*"])
-    api_prefix : str
+    api_prefix
         API route prefix (default: "/api/v1")
 
     Example

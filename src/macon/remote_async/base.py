@@ -4,7 +4,6 @@ import types
 import warnings
 from collections.abc import Callable
 from functools import wraps
-from pathlib import Path
 from typing import Any, TypeVar
 
 from pydantic import BaseModel
@@ -13,7 +12,6 @@ from ..client.base import (
     RemoteAPI,
     RemoteTableOperations,
 )
-from .. import models
 
 # Type variables
 ResponseT = TypeVar("ResponseT", bound=BaseModel)
@@ -28,12 +26,11 @@ def with_client[F: Callable[..., Any]](func: F) -> F:
 
     Parameters
     ----------
-    func : Callable
+    func
         Async method that operates on a RemoteTableOperations client
 
     Returns
     -------
-    Callable
         Wrapped method that automatically gets the client
 
     Examples
@@ -100,21 +97,21 @@ class AsyncRemoteOperations[ResponseT: BaseModel, CreateT: BaseModel]:
 
         Parameters
         ----------
-        base_url : str
+        base_url
             The base URL of the remote API server
-        table_name : str
+        table_name
             The name of the table to operate on
-        response_model : type[ResponseT]
+        response_model
             Pydantic model for response data
-        create_model : type[CreateT]
+        create_model
             Pydantic model for create/input data
-        api_prefix : str, optional
+        api_prefix
             API version prefix, by default "/api/v1"
-        timeout : float, optional
+        timeout
             Request timeout in seconds, by default 30.0
-        auth_token : str | None, optional
+        auth_token
             Authentication token for API requests, by default None
-        client_class : type[RemoteTableOperations] | None, optional
+        client_class
             Custom client class to use instead of default RemoteTableOperations
         """
         self.base_url = base_url
@@ -137,7 +134,6 @@ class AsyncRemoteOperations[ResponseT: BaseModel, CreateT: BaseModel]:
 
         Returns
         -------
-        AsyncRemoteTableOperations
             Self for context manager use
         """
         self._api = RemoteAPI(
@@ -190,7 +186,6 @@ class AsyncRemoteOperations[ResponseT: BaseModel, CreateT: BaseModel]:
 
         Returns
         -------
-        RemoteTableOperations
             The table operations client
 
         Warnings
@@ -445,4 +440,3 @@ class AsyncRemoteOperations[ResponseT: BaseModel, CreateT: BaseModel]:
         **kwargs: Any,
     ) -> ResponseT:
         return await client.find_one_by(*args, **kwargs)
-

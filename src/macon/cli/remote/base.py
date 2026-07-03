@@ -11,8 +11,6 @@ from ...common import unexpected
 from ...models import Filter, FilterOp, OrderBy
 from ...models.utils import OutputEnum, output_pydantic
 from ...remote_sync.base import SyncRemoteOperations
-from ... import remote_sync
-from ..load_commands import make_load_command, make_read_slice_command, make_download_command
 from .. import common_options
 
 logger = logging.getLogger(__name__)
@@ -27,9 +25,9 @@ def handle_error(exc: Exception, context: str = "") -> None:
 
     Parameters
     ----------
-    exc : Exception
+    exc
         Exception that was raised
-    context : str, optional
+    context
         Additional context about when the error occurred
 
     Raises
@@ -59,9 +57,9 @@ class CliRemoteOperations[ResponseT: BaseModel, CreateT: BaseModel]:
 
     Parameters
     ----------
-    operations : SyncRemoteOperations[ResponseT, CreateT]
+    operations
         Remote table operations instance for API access
-    group : click.Group
+    group
         Click command group to register commands to
 
     Examples
@@ -98,9 +96,9 @@ class CliRemoteOperations[ResponseT: BaseModel, CreateT: BaseModel]:
 
         Parameters
         ----------
-        exc : Exception
+        exc
             Exception that was raised
-        context : str, optional
+        context
             Additional context about when the error occurred
 
         Raises
@@ -1239,11 +1237,11 @@ def make_table_group(name: str, ops_factory: Any, desc: str) -> click.Group:
 
     Parameters
     ----------
-    name : str
+    name
         Name of the CLI group
-    ops_factory : callable
+    ops_factory
         Factory function that creates a SyncRemoteOperations instance
-    desc : str
+    desc
         Description for the CLI group
 
     Returns

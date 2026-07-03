@@ -24,7 +24,6 @@ from ..db.session import get_session
 
 logger = get_logger(__name__)
 
-
 FORBID_TRAVERSAL = False
 
 F = TypeVar("F", bound=Callable[..., Any])
@@ -38,14 +37,13 @@ def forward_to_db_funcs(module: Any, func_name: str) -> Callable[[F], F]:
 
     Parameters
     ----------
-    module : Any
+    module
         The db_funcs submodule (e.g., db_funcs.read, db_funcs.filter)
-    func_name : str
+    func_name
         Name of the function to call in the module
 
     Returns
     -------
-    Callable
         Decorator that forwards the call
 
     Examples
@@ -75,14 +73,13 @@ def forward_to_db_funcs_streaming(module: Any, func_name: str) -> Callable[[F], 
 
     Parameters
     ----------
-    module : Any
+    module
         The db_funcs submodule
-    func_name : str
+    func_name
         Name of the streaming function to call
 
     Returns
     -------
-    Callable
         Decorator that forwards the streaming call
     """
 
@@ -119,13 +116,13 @@ class TableContext[T: Base, ResponseT: BaseModel, CreateT: BaseModel]:
 
     Parameters
     ----------
-    db_class : type[T]
+    db_class
         Database model class (SQLAlchemy)
-    response_class : type[ResponseT]
+    response_class
         Pydantic model class for validating / streaming
-    create_class : type[CreateT]
+    create_class
         Pydantic model class for validating creation data
-    class_string : str
+    class_string
         String identifier for the class
 
     Examples
@@ -155,21 +152,18 @@ class TableContext[T: Base, ResponseT: BaseModel, CreateT: BaseModel]:
 
         Parameters
         ----------
-        db_class : type[T]
+        db_class
             Database model class that implements pydantic_model_class(),
             pydantic_create_class(), and class_string() methods
 
         Returns
         -------
-        TableContext[T, BaseModel, BaseModel]
             Configured TableContext with base Pydantic types
 
         Raises
         ------
         AttributeError
             If db_class doesn't implement required methods
-        TypeError
-            If methods don't return BaseModel subclasses
 
         Examples
         --------
@@ -225,7 +219,7 @@ class TableOperations[T: Base, ResponseT: BaseModel, CreateT: BaseModel]:
 
     Parameters
     ----------
-    context : TableContext[T, ResponseT, CreateT]
+    context
         Shared configuration for this operation
 
     Examples
@@ -257,7 +251,7 @@ class TableOperations[T: Base, ResponseT: BaseModel, CreateT: BaseModel]:
 
         Parameters
         ----------
-        context : TableContext[T, ResponseT, CreateT]
+        context
             Shared configuration for this operation, including database
             class and Pydantic model classes
         """
@@ -376,9 +370,9 @@ class TableOperations[T: Base, ResponseT: BaseModel, CreateT: BaseModel]:
 
         Parameters
         ----------
-        session : async_scoped_session
+        session
             DB session manager
-        validate : bool, default=True
+        validate
             Whether to validate input against Pydantic model (CreateT) before
             creation. If True and validation fails, raises ValidationError.
         **kwargs : Any
@@ -386,14 +380,11 @@ class TableOperations[T: Base, ResponseT: BaseModel, CreateT: BaseModel]:
 
         Returns
         -------
-        T
             Newly created row of the database model type with database-generated
             values (after flush)
 
         Raises
         ------
-        TypeError
-            If self.ctx.db_class does not inherit from rail_svc.db.base.Base
         ValidationError
             Pydantic validation failed on the input (if validate=True)
         IntegrityError
@@ -463,25 +454,22 @@ class TableOperations[T: Base, ResponseT: BaseModel, CreateT: BaseModel]:
 
         Parameters
         ----------
-        session : async_scoped_session
+        session
             DB session manager
-        rows_data : Sequence[dict[str, Any]]
+        rows_data
             Sequence of dictionaries, each containing column names and values
             for a new row
-        validate : bool, default=True
+        validate
             Whether to validate each row against Pydantic model (CreateT)
             before creation
 
         Returns
         -------
-        list[T]
             List of newly created rows of the database model type with
             database-generated values
 
         Raises
         ------
-        TypeError
-            If self.ctx.db_class does not inherit from rail_svc.db.base.Base
         IntegrityError
             Integrity constraint violation (e.g., duplicate key, null constraint)
         ValidationError
@@ -601,13 +589,10 @@ class TableOperations[T: Base, ResponseT: BaseModel, CreateT: BaseModel]:
 
         Returns
         -------
-        list[T]
             List of all newly created rows
 
         Raises
         ------
-        TypeError
-            If the_class does not inherit from rail_svc.db.base.Base
         IntegrityError
             Integrity constraint violation in any batch
         ValidationError
@@ -690,13 +675,10 @@ class TableOperations[T: Base, ResponseT: BaseModel, CreateT: BaseModel]:
 
         Returns
         -------
-        int
             Number of rows inserted
 
         Raises
         ------
-        TypeError
-            If the_class does not inherit from rail_svc.db.base.Base
         IntegrityError
             Integrity constraint violation
         ValidationError
@@ -759,12 +741,11 @@ class TableOperations[T: Base, ResponseT: BaseModel, CreateT: BaseModel]:
 
         Parameters
         ----------
-        path : str
+        path
             Relative path to validate
 
         Returns
         -------
-        Path
             Resolved, validated absolute path
 
         Raises
@@ -844,12 +825,11 @@ class TableOperations[T: Base, ResponseT: BaseModel, CreateT: BaseModel]:
 
         Parameters
         ----------
-        row : T
+        row
             Database row instance (SQLAlchemy model)
 
         Returns
         -------
-        ResponseT
             Pydantic model instance of the response type, containing the
             same data as the database row
 
@@ -878,11 +858,6 @@ class TableOperations[T: Base, ResponseT: BaseModel, CreateT: BaseModel]:
         ...     # Fully typed as UserResponse
         ...     print(user_pydantic.model_dump_json())
         {"id": 1, "username": "alice", "email": "alice@example.com"}
-
-        See Also
-        --------
-        to_pydantic_list : Convert multiple rows at once
-        to_pydantic_dict : Convert a row to a dictionary
         """
         return cast(ResponseT, self.ctx.db_class.to_pydantic(row))
 
@@ -895,12 +870,11 @@ class TableOperations[T: Base, ResponseT: BaseModel, CreateT: BaseModel]:
 
         Parameters
         ----------
-        rows : list[T]
+        rows
             List of database row instances (SQLAlchemy models)
 
         Returns
         -------
-        list[ResponseT]
             List of Pydantic response model instances, in the same order
             as the input rows
 
@@ -950,11 +924,6 @@ class TableOperations[T: Base, ResponseT: BaseModel, CreateT: BaseModel]:
         ...         rows = await ops.get_rows(session)
         ...         return ops.to_pydantic_list(rows)
         ...         # Return type is correctly typed
-
-        See Also
-        --------
-        to_pydantic : Convert a single row
-        to_pydantic_dict_list : Convert multiple rows to dictionaries
         """
         return cast(list[ResponseT], self.ctx.db_class.to_pydantic_list(rows))
 
@@ -968,12 +937,11 @@ class TableOperations[T: Base, ResponseT: BaseModel, CreateT: BaseModel]:
 
         Parameters
         ----------
-        row : T
+        row
             Database row instance (SQLAlchemy model)
 
         Returns
         -------
-        dict[str, Any]
             Dictionary representation of the row, with keys corresponding to
             the Pydantic response model fields and values appropriately
             serialized
@@ -1019,11 +987,6 @@ class TableOperations[T: Base, ResponseT: BaseModel, CreateT: BaseModel]:
         >>> # Or JSON responses without FastAPI's automatic conversion
         >>> import json
         >>> json_str = json.dumps(ops.to_pydantic_dict(user_row))
-
-        See Also
-        --------
-        to_pydantic : Get the Pydantic model instead of dict
-        to_pydantic_dict_list : Convert multiple rows to dictionaries
         """
         return self.ctx.db_class.to_pydantic_dict(row)
 
@@ -1037,12 +1000,11 @@ class TableOperations[T: Base, ResponseT: BaseModel, CreateT: BaseModel]:
 
         Parameters
         ----------
-        rows : list[T]
+        rows
             List of database row instances (SQLAlchemy models)
 
         Returns
         -------
-        list[dict[str, Any]]
             List of dictionary representations, each with keys corresponding to
             the Pydantic response model fields and values appropriately
             serialized, in the same order as the input rows
@@ -1096,11 +1058,6 @@ class TableOperations[T: Base, ResponseT: BaseModel, CreateT: BaseModel]:
         >>> # YAML/JSON export
         >>> import yaml
         >>> yaml.dump(ops.to_pydantic_dict_list(user_rows), open('users.yaml', 'w'))
-
-        See Also
-        --------
-        to_pydantic_dict : Convert a single row to dictionary
-        to_pydantic_list : Get Pydantic models instead of dicts
         """
         return self.ctx.db_class.to_pydantic_dict_list(rows)
 
@@ -1152,10 +1109,6 @@ class FileValidatedOperations[T: Base, ResponseT: BaseModel, CreateT: BaseModel]
     ...             path, catalog_tag, validate_file, extra_kwargs
     ...         )
     ...         return {"catalog_tag_id": catalog_tag_id, "n_objects": n_objects}
-
-    See Also
-    --------
-    TableOperations : Base class for all table operations
     """
 
     @abstractmethod
@@ -1168,7 +1121,6 @@ class FileValidatedOperations[T: Base, ResponseT: BaseModel, CreateT: BaseModel]
 
         Returns
         -------
-        str
             Subdirectory name (e.g., "datasets", "models", "estimates")
 
         Examples
@@ -1213,7 +1165,6 @@ class FileValidatedOperations[T: Base, ResponseT: BaseModel, CreateT: BaseModel]
 
         Returns
         -------
-        ResponseT
             The created Pydantic model
 
         Raises
@@ -1368,7 +1319,6 @@ class FileValidatedOperations[T: Base, ResponseT: BaseModel, CreateT: BaseModel]
 
         Returns
         -------
-        int
             Number of objects in file
 
         Raises
@@ -1439,7 +1389,6 @@ class FileValidatedOperations[T: Base, ResponseT: BaseModel, CreateT: BaseModel]
 
         Returns
         -------
-        int
             Number of objects in the file
 
         Raises
@@ -1517,16 +1466,15 @@ def create_operations[T: Base, ResponseT: BaseModel, CreateT: BaseModel](
 
     Parameters
     ----------
-    db_class : type[T]
+    db_class
         SQLAlchemy database model class
-    response_class : type[ResponseT]
+    response_class
         Pydantic response model class
-    create_class : type[CreateT]
+    create_class
         Pydantic creation model class
 
     Returns
     -------
-    TableOperations[T, ResponseT, CreateT]
         Fully typed operations instance
     """
     context = TableContext(

@@ -89,7 +89,6 @@ class Base(DeclarativeBase):
 
         Returns
         -------
-        str
             The class name for display purposes
         """
         return cls.__name__
@@ -105,7 +104,6 @@ class Base(DeclarativeBase):
 
         Returns
         -------
-        type[BaseModel]
             The Pydantic model class for row creation
 
         Examples
@@ -130,7 +128,6 @@ class Base(DeclarativeBase):
 
         Returns
         -------
-        type[BaseModel]
             The Pydantic model class for row serialization/validation
 
         Examples
@@ -159,7 +156,6 @@ class Base(DeclarativeBase):
 
         Returns
         -------
-        BaseModel
             An instance of the Pydantic model class with data from the row
 
         Examples
@@ -201,7 +197,6 @@ class Base(DeclarativeBase):
 
         Returns
         -------
-        list[BaseModel]
             List of Pydantic model instances
 
         Examples
@@ -242,7 +237,6 @@ class Base(DeclarativeBase):
 
         Returns
         -------
-        dict[str, Any]
             Dictionary representation of the row data
 
         Examples
@@ -280,7 +274,6 @@ class Base(DeclarativeBase):
 
         Returns
         -------
-        list[dict[str, Any]]
             List of dictionary representations
 
         Examples
@@ -306,7 +299,6 @@ class Base(DeclarativeBase):
 
         Returns
         -------
-        int
             Maximum number of rows to return in a single query
 
         Examples
@@ -326,7 +318,6 @@ class Base(DeclarativeBase):
 
         Returns
         -------
-        dict[str, bool]
             Map of hook names to whether they're overridden from Base
 
         Examples
@@ -376,7 +367,6 @@ class Base(DeclarativeBase):
 
         Returns
         -------
-        dict[str, Any]
             Modified or unchanged data dictionary used to create the row.
             The returned dict is what actually gets passed to the model constructor.
 
@@ -507,7 +497,6 @@ class Base(DeclarativeBase):
 
         Returns
         -------
-        dict[str, Any]
             Modified or unchanged data dictionary used to update the row.
             The returned dict is what actually gets applied to the row.
 
@@ -765,8 +754,6 @@ def ensure_base_inheritance(cls: type[Any]) -> None:
 
     Raises
     ------
-    TypeError
-        If cls does not inherit from Base
 
     Examples
     --------

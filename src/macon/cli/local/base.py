@@ -9,7 +9,6 @@ import click
 from pydantic import BaseModel, ValidationError
 from sqlalchemy.exc import IntegrityError
 
-from ... import local_sync
 from ...common import unexpected
 from ...db.base import Base
 from ...db.session import init_db
@@ -17,7 +16,6 @@ from ...local_sync.base import SyncOperations
 from ...models import Filter, FilterOp, OrderBy
 from ...models.utils import OutputEnum, output_pydantic
 from .. import common_options
-from ..load_commands import make_load_command, make_read_slice_command
 
 logger = logging.getLogger(__name__)
 
@@ -32,9 +30,9 @@ def handle_database_error(exc: Exception, context: str = "") -> None:
 
     Parameters
     ----------
-    exc : Exception
+    exc
         Exception that was raised
-    context : str, optional
+    context
         Additional context about when the error occurred
 
     Raises
@@ -74,9 +72,9 @@ class CliOperations[T: Base, ResponseT: BaseModel, CreateT: BaseModel]:
 
     Parameters
     ----------
-    operations : LocalOperations[T, ResponseT, CreateT]
+    operations
         Table operations instance for database access
-    group : click.Group
+    group
         Click command group to register commands to
 
     Examples
@@ -109,12 +107,11 @@ class CliOperations[T: Base, ResponseT: BaseModel, CreateT: BaseModel]:
 
         Parameters
         ----------
-        json_file : str
+        json_file
             Path to JSON file containing array of objects
 
         Returns
         -------
-        list[dict[str, Any]]
             Parsed JSON data
 
         Raises
@@ -1368,4 +1365,3 @@ def make_table_group(name: str, ops: Any, desc: str) -> click.Group:
     cli_ops.register_all_delete_commands()
     cli_ops.register_all_filter_commands()
     return grp
-

@@ -54,7 +54,10 @@ def serve(
     cors_origins_list = [origin.strip() for origin in cors_origins.split(",")]
 
     # Create the app with CLI options
+    from ...router.test_classes import all_routers
+
     app = create_fastapi_app(
+        all_routers,
         title="Database API",
         description="RESTful API for database operations with full CRUD support",
         version="1.0.0",

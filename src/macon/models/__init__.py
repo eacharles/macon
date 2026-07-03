@@ -1,6 +1,12 @@
 from .filtering import Filter, FilterOp, OrderBy
-from .model import Model, ModelCreate
-from .sed import Sed, SedCreate
+from .test_classes import (
+    TestNamed,
+    TestNamedCreate,
+    TestRef,
+    TestRefCreate,
+    TestListPair,
+    TestListPairCreate,
+)
 from .web import (
     AsyncRouteError,
     CountResponse,
@@ -13,14 +19,19 @@ from .web import (
 
 __all__ = [
     "Filter",
-    "FilterAB",
-    "FilterABCreate",
     "FilterOp",
     "OrderBy",
-    "RemoteAPIError",
+    "AsyncRouteError",
     "CountResponse",
-    "LookupResponse",
     "DeleteResponse",
     "FilterRequest",
     "FindRequest",
+    "LookupResponse",
+    "RemoteAPIError",
+    "TestNamed",
+    "TestNamedCreate",
+    "TestRef",
+    "TestRefCreate",
+    "TestListPair",
+    "TestListPairCreate",
 ]

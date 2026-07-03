@@ -28,16 +28,15 @@ def validate_non_empty(_ctx: click.Context, param: click.Parameter, value: str) 
 
     Parameters
     ----------
-    _ctx : click.Context
+    _ctx
         Click context
-    param : click.Parameter
+    param
         Click parameter
-    value : str
+    value
         Parameter value
 
     Returns
     -------
-    str
         The value if valid
 
     Raises
@@ -198,11 +197,9 @@ fields = PartialOption(
     help="Field to update (format: --field name value)",
 )
 
-
 order_by = PartialOption(
     "--order-by", "-o", multiple=True, help="Order by field (prefix with - for descending)"
 )
-
 
 json_data = PartialOption(
     "--json-data", type=str, help="JSON string of fields to update (alternative to --field)"
@@ -230,7 +227,6 @@ with_count = PartialOption(
     help="Include total count of matching records",
 )
 
-
 no_validate = PartialOption(
     "--no-validate", is_flag=True, help="Skip Pydantic validation (faster, less safe)"
 )
@@ -253,7 +249,6 @@ confirm = PartialOption(
     help="Skip confirmation prompt",
 )
 
-
 path = PartialOption(
     "--path",
     type=click.Path(exists=True, dir_okay=False, readable=True),
@@ -261,14 +256,12 @@ path = PartialOption(
     help="Input file path",
 )
 
-
 output_path = PartialOption(
     "--output-path",
     type=click.Path(exists=False, dir_okay=False, writable=True),
     required=True,
     help="Output file path",
 )
-
 
 slice_option = PartialOption(
     "--slice",
@@ -279,7 +272,6 @@ slice_option = PartialOption(
     help="Slice notation (e.g., '1:5', '::2', ':10')",
 )
 
-
 load_type = PartialOption(
     "--load-type",
     type=click.Choice([e.value for e in LoadType], case_sensitive=False),
@@ -287,7 +279,6 @@ load_type = PartialOption(
     callback=lambda ctx, param, value: LoadType(value) if value else None,
     help="How to load the file: in_place (use file as-is), link (symlink), or copy (duplicate file)",
 )
-
 
 row = PartialOption(
     "--row",

@@ -9,14 +9,11 @@ from typing import Any, cast
 
 import aiofiles
 import httpx
-import numpy as np
 from pydantic import BaseModel, ValidationError
-import qp
 
 from ..config import config as global_config
-from ..common import unexpected, LoadType, slice_to_str
+from ..common import unexpected, LoadType
 from ..models import CountResponse, Filter, FilterRequest, LookupResponse, OrderBy, RemoteAPIError
-from .. import models
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -30,13 +27,13 @@ class RemoteTableOperations[ResponseT: BaseModel, CreateT: BaseModel]:
 
     Parameters
     ----------
-    client : httpx.AsyncClient
+    client
         Shared HTTP client instance
-    endpoint : str
+    endpoint
         Full endpoint URL for this table
-    response_model : type[ResponseT]
+    response_model
         Pydantic model class for response data
-    create_model : type[CreateT]
+    create_model
         Pydantic model class for create data
 
     Note
@@ -65,14 +62,13 @@ class RemoteTableOperations[ResponseT: BaseModel, CreateT: BaseModel]:
 
         Parameters
         ----------
-        response : httpx.Response
+        response
             The HTTP response object
-        expected_status : int
+        expected_status
             Expected status code (default: 200)
 
         Returns
         -------
-        dict[str, Any]
             Parsed JSON response
 
         Raises
@@ -102,14 +98,13 @@ class RemoteTableOperations[ResponseT: BaseModel, CreateT: BaseModel]:
 
         Parameters
         ----------
-        validate : bool
+        validate
             Whether to validate data on the server (default: True)
         **data
             Row data as keyword arguments
 
         Returns
         -------
-        ResponseT
             Created row
 
         Raises
@@ -133,14 +128,13 @@ class RemoteTableOperations[ResponseT: BaseModel, CreateT: BaseModel]:
 
         Parameters
         ----------
-        data : list[dict]
+        data
             List of row data dictionaries
-        validate : bool
+        validate
             Whether to validate data on the server (default: True)
 
         Returns
         -------
-        list[ResponseT]
             List of created rows
 
         Raises
@@ -170,16 +164,15 @@ class RemoteTableOperations[ResponseT: BaseModel, CreateT: BaseModel]:
 
         Parameters
         ----------
-        data : list[dict]
+        data
             List of row data dictionaries
-        validate : bool
+        validate
             Whether to validate data on the server (default: True)
-        batch_size : int
+        batch_size
             Size of each batch (default: 1000)
 
         Returns
         -------
-        list[ResponseT]
             List of created rows
 
         Raises
@@ -203,14 +196,13 @@ class RemoteTableOperations[ResponseT: BaseModel, CreateT: BaseModel]:
 
         Parameters
         ----------
-        data : list[dict]
+        data
             List of row data dictionaries
-        validate : bool
+        validate
             Whether to validate data on the server (default: True)
 
         Returns
         -------
-        int
             Number of rows inserted
 
         Raises
@@ -234,12 +226,11 @@ class RemoteTableOperations[ResponseT: BaseModel, CreateT: BaseModel]:
 
         Parameters
         ----------
-        row_id : int
+        row_id
             Row ID
 
         Returns
         -------
-        ResponseT
             Row data
 
         Raises
@@ -257,12 +248,11 @@ class RemoteTableOperations[ResponseT: BaseModel, CreateT: BaseModel]:
 
         Parameters
         ----------
-        row_id : int
+        row_id
             Row ID
 
         Returns
         -------
-        ResponseT | None
             Row data or None if not found
 
         Raises
@@ -282,12 +272,11 @@ class RemoteTableOperations[ResponseT: BaseModel, CreateT: BaseModel]:
 
         Parameters
         ----------
-        name : str
+        name
             Row name
 
         Returns
         -------
-        ResponseT
             Row data
 
         Raises
@@ -305,14 +294,13 @@ class RemoteTableOperations[ResponseT: BaseModel, CreateT: BaseModel]:
 
         Parameters
         ----------
-        skip : int
+        skip
             Number of rows to skip (default: 0)
-        limit : int | None
+        limit
             Maximum rows to return (default: None for all)
 
         Returns
         -------
-        list[ResponseT]
             List of rows
 
         Raises
@@ -341,14 +329,13 @@ class RemoteTableOperations[ResponseT: BaseModel, CreateT: BaseModel]:
 
         Parameters
         ----------
-        skip : int
+        skip
             Number of rows to skip (default: 0)
-        limit : int | None
+        limit
             Maximum rows to return (default: None for all)
 
         Yields
         ------
-        ResponseT
             Row data objects
 
         Raises
@@ -397,7 +384,6 @@ class RemoteTableOperations[ResponseT: BaseModel, CreateT: BaseModel]:
 
         Returns
         -------
-        int
             Total number of rows
 
         Raises
@@ -419,14 +405,13 @@ class RemoteTableOperations[ResponseT: BaseModel, CreateT: BaseModel]:
 
         Parameters
         ----------
-        id_ : int | None
+        id_
             Row ID (optional)
-        name : str | None
+        name
             Row name (optional)
 
         Returns
         -------
-        tuple[int, ResponseT]
             Tuple of (resolved_id, row_data)
 
         Raises
@@ -456,14 +441,13 @@ class RemoteTableOperations[ResponseT: BaseModel, CreateT: BaseModel]:
 
         Parameters
         ----------
-        row_id : int
+        row_id
             Row ID
         **data
             Fields to update as keyword arguments
 
         Returns
         -------
-        ResponseT
             Updated row
 
         Raises
@@ -484,12 +468,11 @@ class RemoteTableOperations[ResponseT: BaseModel, CreateT: BaseModel]:
 
         Parameters
         ----------
-        data : list[dict]
+        data
             List of row data dictionaries, each must contain an 'id' field
 
         Returns
         -------
-        list[ResponseT]
             List of updated rows
 
         Raises
@@ -514,14 +497,13 @@ class RemoteTableOperations[ResponseT: BaseModel, CreateT: BaseModel]:
 
         Parameters
         ----------
-        row_id : int
+        row_id
             Row ID
-        capture_data : bool
+        capture_data
             Whether to return deleted row data (default: True)
 
         Returns
         -------
-        ResponseT | None
             Deleted row data if capture_data=True, otherwise None
 
         Raises
@@ -551,14 +533,13 @@ class RemoteTableOperations[ResponseT: BaseModel, CreateT: BaseModel]:
 
         Parameters
         ----------
-        ids : list[int]
+        ids
             List of row IDs to delete
-        capture_data : bool
+        capture_data
             Whether to return deleted row data (default: False)
 
         Returns
         -------
-        list[ResponseT] | int
             List of deleted rows if capture_data=True, otherwise count
 
         Raises
@@ -584,12 +565,11 @@ class RemoteTableOperations[ResponseT: BaseModel, CreateT: BaseModel]:
 
         Parameters
         ----------
-        ids : list[int]
+        ids
             List of row IDs to delete
 
         Returns
         -------
-        int
             Number of rows deleted
 
         Raises
@@ -620,20 +600,19 @@ class RemoteTableOperations[ResponseT: BaseModel, CreateT: BaseModel]:
 
         Parameters
         ----------
-        filters : list[Filter] | None
+        filters
             List of filter conditions (default: None)
-        logical_op : str
+        logical_op
             Logical operator for combining filters: "and" or "or" (default: "and")
-        order_by : OrderBy | list[OrderBy] | None
+        order_by
             Ordering specification (default: None)
-        skip : int
+        skip
             Number of rows to skip (default: 0)
-        limit : int | None
+        limit
             Maximum rows to return (default: None)
 
         Returns
         -------
-        list[ResponseT]
             List of filtered rows
 
         Raises
@@ -669,20 +648,19 @@ class RemoteTableOperations[ResponseT: BaseModel, CreateT: BaseModel]:
 
         Parameters
         ----------
-        filters : list[Filter] | None
+        filters
             List of filter conditions (default: None)
-        logical_op : str
+        logical_op
             Logical operator for combining filters: "and" or "or" (default: "and")
-        order_by : OrderBy | list[OrderBy] | None
+        order_by
             Ordering specification (default: None)
-        skip : int
+        skip
             Number of rows to skip (default: 0)
-        limit : int | None
+        limit
             Maximum rows to return (default: None)
 
         Yields
         ------
-        ResponseT
             Filtered row data objects
 
         Raises
@@ -734,14 +712,13 @@ class RemoteTableOperations[ResponseT: BaseModel, CreateT: BaseModel]:
 
         Parameters
         ----------
-        filters : list[Filter] | None
+        filters
             List of filter conditions (default: None)
-        logical_op : str
+        logical_op
             Logical operator for combining filters: "and" or "or" (default: "and")
 
         Returns
         -------
-        int
             Number of rows matching the filter
 
         Raises
@@ -771,14 +748,13 @@ class RemoteTableOperations[ResponseT: BaseModel, CreateT: BaseModel]:
 
         Parameters
         ----------
-        filters : list[Filter]
+        filters
             List of filter conditions (required)
-        logical_op : str
+        logical_op
             Logical operator for combining filters: "and" or "or" (default: "and")
 
         Returns
         -------
-        ResponseT
             Single matching row
 
         Raises
@@ -808,14 +784,13 @@ class RemoteTableOperations[ResponseT: BaseModel, CreateT: BaseModel]:
 
         Parameters
         ----------
-        filters : list[Filter]
+        filters
             List of filter conditions (required)
-        logical_op : str
+        logical_op
             Logical operator for combining filters: "and" or "or" (default: "and")
 
         Returns
         -------
-        ResponseT | None
             Single matching row or None if no match
 
         Raises
@@ -849,18 +824,17 @@ class RemoteTableOperations[ResponseT: BaseModel, CreateT: BaseModel]:
 
         Parameters
         ----------
-        order_by : OrderBy | list[OrderBy] | None
+        order_by
             Ordering specification (default: None)
-        skip : int
+        skip
             Number of rows to skip (default: 0)
-        limit : int | None
+        limit
             Maximum rows to return (default: None)
         **query_params
             Field values to match (equality filters)
 
         Returns
         -------
-        list[ResponseT]
             List of matching rows
 
         Raises
@@ -905,7 +879,6 @@ class RemoteTableOperations[ResponseT: BaseModel, CreateT: BaseModel]:
 
         Returns
         -------
-        ResponseT
             Single matching row
 
         Raises
@@ -934,13 +907,13 @@ class RemoteAPI:
 
     Parameters
     ----------
-    base_url : str
+    base_url
         Base URL of the API server (e.g., "http://localhost:8000")
-    api_prefix : str
+    api_prefix
         API route prefix (default: "/api/v1")
-    timeout : float
+    timeout
         Request timeout in seconds (default: 30.0)
-    auth_token : str | None
+    auth_token
         Optional Bearer token for authentication
 
     Example
@@ -1026,16 +999,15 @@ class RemoteAPI:
 
         Parameters
         ----------
-        table_name : str
+        table_name
             Name of the table endpoint
-        response_model : type[ResponseT]
+        response_model
             Pydantic model class for response data
-        create_model : type[CreateT]
+        create_model
             Pydantic model class for create data
 
         Returns
         -------
-        RemoteTableOperations[T, ResponseT, CreateT]
             Table operations client for the specified table
 
         Note
@@ -1085,18 +1057,17 @@ class RemoteFileOperations[ResponseT: BaseModel, CreateT: BaseModel](
 
         Parameters
         ----------
-        path : Path | str
+        path
             Path to the data file
-        load_type : LoadType
+        load_type
             How to handle the file (in_place, link, or copy)
-        validate : bool
+        validate
             Whether to validate data on the server (default: True)
         **data
             Additional fields for the record
 
         Returns
         -------
-        ResponseT
             Created row
 
         Raises
@@ -1128,14 +1099,13 @@ class RemoteFileOperations[ResponseT: BaseModel, CreateT: BaseModel](
 
         Parameters
         ----------
-        row_id : int
+        row_id
             Row ID
-        output_path : Path | str | None
+        output_path
             Optional output path relative to download area.
 
         Returns
         -------
-        Path
             Path to the downloaded file
 
         Raises

@@ -5,13 +5,10 @@ from __future__ import annotations
 import inspect
 from collections.abc import AsyncIterator, Callable
 from functools import wraps
-from typing import Any, cast
+from typing import Any
 
-import numpy as np
-import qp
 from pydantic import BaseModel
 
-from .. import db, models
 from ..db.base import Base
 from ..db.session import get_session
 from ..db_oper.base import TableOperations
@@ -31,12 +28,11 @@ def with_session[F: Callable[..., Any]](func: F) -> F:
 
     Parameters
     ----------
-    func : Callable
+    func
         Method or function that calls a table operations method
 
     Returns
     -------
-    Callable
         Wrapped method/function with session management
     """
     if _is_method(func):
@@ -64,12 +60,11 @@ def with_session_transaction[F: Callable[..., Any]](func: F) -> F:
 
     Parameters
     ----------
-    func : Callable
+    func
         Method or function that calls a table operations method
 
     Returns
     -------
-    Callable
         Wrapped method/function with session and transaction management
     """
     if _is_method(func):
@@ -98,12 +93,11 @@ def to_pydantic[F: Callable[..., Any]](func: F) -> F:
 
     Parameters
     ----------
-    func : Callable
+    func
         Method that returns an ORM object
 
     Returns
     -------
-    Callable
         Wrapped method that returns a Pydantic model
     """
 
@@ -122,12 +116,11 @@ def to_pydantic_list[F: Callable[..., Any]](func: F) -> F:
 
     Parameters
     ----------
-    func : Callable
+    func
         Method that returns a list/sequence of ORM objects
 
     Returns
     -------
-    Callable
         Wrapped method that returns a list of Pydantic models
     """
 
@@ -147,12 +140,11 @@ def to_pydantic_or_none[F: Callable[..., Any]](func: F) -> F:
 
     Parameters
     ----------
-    func : Callable
+    func
         Method that returns an ORM object or None
 
     Returns
     -------
-    Callable
         Wrapped method that returns a Pydantic model or None
     """
 
@@ -184,7 +176,7 @@ class LocalOperations[T: Base, ResponseT: BaseModel, CreateT: BaseModel]:
 
         Parameters
         ----------
-        table_operations : TableOperations[T, ResponseT, CreateT]
+        table_operations
             The table operations instance to wrap
         """
         self._table_ops = table_operations
@@ -314,5 +306,3 @@ class LocalOperations[T: Base, ResponseT: BaseModel, CreateT: BaseModel]:
     @to_pydantic
     async def find_one_by(self, session: Any, *args: Any, **kwargs: Any) -> Any:
         return await self._table_ops.find_one_by(session, *args, **kwargs)
-
-

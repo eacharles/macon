@@ -31,7 +31,6 @@ def display_table(data: list[dict[str, Any]], col_names: list[str]) -> str:
 
     Returns
     -------
-    str
         Formatted table string, or empty string if no data
 
     Notes
@@ -59,7 +58,6 @@ def format_output(data: list[dict[str, Any]] | dict[str, Any], output_format: Ou
 
     Returns
     -------
-    str
         Formatted data string
 
     Raises
@@ -96,7 +94,6 @@ def output_json(response: dict[str, Any] | list | str, output_format: OutputEnum
 
     Returns
     -------
-    str
         Formatted output string
 
     Raises
@@ -137,7 +134,6 @@ def output_pydantic_list(
 
     Returns
     -------
-    str
         Formatted output string
 
     Raises
@@ -193,7 +189,6 @@ def output_pydantic_single(
 
     Returns
     -------
-    str
         Formatted output string
 
     Raises
@@ -251,7 +246,6 @@ def output_pydantic(
 
     Returns
     -------
-    str
         Formatted output string
 
     Raises
@@ -259,11 +253,6 @@ def output_pydantic(
     ValueError
         If output_format is 'table' but col_names is None, or if
         output_format is not recognized
-
-    See Also
-    --------
-    output_pydantic_single : Output a single Pydantic model
-    output_pydantic_list : Output a list of Pydantic models
 
     Examples
     --------

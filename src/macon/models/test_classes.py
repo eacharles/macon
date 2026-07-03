@@ -2,8 +2,7 @@
 
 from typing import ClassVar
 
-from pydantic import (BaseModel, ConfigDict, Field, ValidationInfo,
-                      field_validator)
+from pydantic import BaseModel, ConfigDict, Field, ValidationInfo, field_validator
 
 
 class TestNamedBase(BaseModel):
@@ -16,11 +15,9 @@ class TestNamedBase(BaseModel):
 class TestNamedCreate(TestNamedBase):
     """Parameters that are used to create new rows but not in DB tables"""
 
-    
-class TestNamed(TestNamedBase):
-    """Information about a particular named row
 
-    """
+class TestNamed(TestNamedBase):
+    """Information about a particular named row"""
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -32,7 +29,6 @@ class TestNamed(TestNamedBase):
 
     #: primary key
     id_: int = Field(..., gt=0)
-
 
 
 class TestRefBase(BaseModel):
@@ -48,11 +44,9 @@ class TestRefCreate(TestRefBase):
     #: Name for the row in the other table
     ref_name: str
 
-    
-class TestRef(TestRefBase):
-    """Information about a particular named row
 
-    """
+class TestRef(TestRefBase):
+    """Information about a particular named row"""
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -67,9 +61,9 @@ class TestRef(TestRefBase):
     id_: int = Field(..., gt=0)
 
     #: foreign key
-    ref_id: in
-    
-    
+    ref_id: int
+
+
 class TestListPairBase(BaseModel):
     """Parameters that are in DB tables and also used to create new rows"""
 
@@ -90,13 +84,13 @@ class TestListPairBase(BaseModel):
             raise ValueError("Array must not be empty")
         return v
 
-    @field_validator("list_1")
+    @field_validator("list_2")
     @classmethod
     def validate_same_length(cls, v: list[float], info: ValidationInfo) -> list[float]:
-        """Ensure list_1 and list_2 arrays have same length"""
-        if "sed_wavelengths" in info.data:
-            if len(v) != len(info.data["sed_wavelengths"]):
-                raise ValueError("sed_values must have same length as sed_wavelengths")
+        """Ensure list_1 and list_2 have same length."""
+        if "list_1" in info.data:
+            if len(v) != len(info.data["list_1"]):
+                raise ValueError("list_2 must have same length as list_1")
         return v
 
 
@@ -105,9 +99,7 @@ class TestListPairCreate(TestListPairBase):
 
 
 class TestListPair(TestListPairBase):
-    """Test class that stores two lists of values
-
-    """
+    """Test class that stores two lists of values"""
 
     model_config = ConfigDict(from_attributes=True)
 

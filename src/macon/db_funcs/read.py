@@ -18,7 +18,7 @@ from sqlalchemy import func, select
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from rail_svc.db.base import T, ensure_base_inheritance
+from ..db.base import T, ensure_base_inheritance
 
 from ..common import unexpected
 
@@ -43,13 +43,10 @@ async def get_row(
 
     Returns
     -------
-    T
         The matching row
 
     Raises
     ------
-    TypeError
-        If the_class does not inherit from Base
     KeyError
         If row with given ID does not exist
 
@@ -88,13 +85,10 @@ async def get_row_by_name(
 
     Returns
     -------
-    T
         Matching row
 
     Raises
     ------
-    TypeError
-        If the_class does not inherit from Base
     AttributeError
         If the_class does not have a 'name' attribute
     KeyError
@@ -152,13 +146,10 @@ async def get_rows(
 
     Returns
     -------
-    Sequence[T]
         All matching rows within the limit
 
     Raises
     ------
-    TypeError
-        If the_class does not inherit from Base
 
     Examples
     --------
@@ -210,13 +201,10 @@ async def get_rows_streaming(
 
     Yields
     ------
-    T
         Individual rows one at a time
 
     Raises
     ------
-    TypeError
-        If the_class does not inherit from Base
 
     Examples
     --------
@@ -264,7 +252,6 @@ async def get_row_or_none(
 
     Returns
     -------
-    T
         The matching row or None if it is not found
     """
     ensure_base_inheritance(the_class)
@@ -295,7 +282,6 @@ async def count_rows(
 
     Returns
     -------
-    int
         Total number of rows in the table
     """
     ensure_base_inheritance(the_class)
@@ -340,7 +326,6 @@ async def lookup_by_id_or_name(
 
     Returns
     -------
-    tuple[int, T | None]
         A tuple of (id, object) where:
         - id: The primary key (always present)
         - object: The database object (present if need_object=True or if looked up by name)

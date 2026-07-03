@@ -8,7 +8,6 @@ host = PartialOption(
     help="Host to bind to (default: 0.0.0.0)",
 )
 
-
 port = PartialOption(
     "--port",
     default=8000,
@@ -16,13 +15,11 @@ port = PartialOption(
     help="Port to bind to (default: 8000)",
 )
 
-
 reload = PartialOption(
     "--reload",
     is_flag=True,
     help="Enable auto-reload for development",
 )
-
 
 workers = PartialOption(
     "--workers",
@@ -31,7 +28,6 @@ workers = PartialOption(
     help="Number of worker processes (default: 1)",
 )
 
-
 log_level = PartialOption(
     "--log-level",
     default="info",
@@ -39,13 +35,11 @@ log_level = PartialOption(
     help="Log level (default: info)",
 )
 
-
 api_prefix = PartialOption(
     "--api-prefix",
     default="/api/v1",
     help="API route prefix (default: /api/v1)",
 )
-
 
 enable_rate_limiting = PartialOption(
     "--enable-rate-limiting/--no-rate-limiting",
@@ -53,13 +47,11 @@ enable_rate_limiting = PartialOption(
     help="Enable rate limiting (default: enabled)",
 )
 
-
 rate_limit_storage = PartialOption(
     "--rate-limit-storage",
     default="memory://",
     help="Rate limit storage URI (default: memory://)",
 )
-
 
 enable_cors = PartialOption(
     "--enable-cors/--no-cors",
@@ -67,13 +59,11 @@ enable_cors = PartialOption(
     help="Enable CORS (default: enabled)",
 )
 
-
 cors_origins = PartialOption(
     "--cors-origins",
     default="*",
     help="Allowed CORS origins (comma-separated, default: *)",
 )
-
 
 debug = PartialOption(
     "--debug/--no-debug",

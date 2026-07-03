@@ -1,21 +1,16 @@
-"""Database model for Sed table"""
-
-from typing import TYPE_CHECKING
+"""Database models for test tables."""
 
 from pydantic import BaseModel
+from sqlalchemy import ForeignKey
 from sqlalchemy import JSON, String
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, mapped_column
 
 from .. import models
 from .base import Base
 
-if TYPE_CHECKING:
-    from .filter_ab import FilterAB
-
 
 class TestNamed(Base):
     """Test class for tables with unique name per row
-
 
     Attributes
     ----------
@@ -49,7 +44,6 @@ class TestNamed(Base):
 
         Returns
         -------
-        type[BaseModel]
             The Pydantic model class
         """
         return models.TestNamedCreate
@@ -60,7 +54,6 @@ class TestNamed(Base):
 
         Returns
         -------
-        type[BaseModel]
             The Pydantic model class for Sed
         """
         return models.TestNamed
@@ -71,7 +64,6 @@ class TestNamed(Base):
 
         Returns
         -------
-        str
             The string 'band' for use in help functions and descriptions
         """
         return cls.__tablename__
@@ -81,7 +73,6 @@ class TestNamed(Base):
 
         Returns
         -------
-        str
             String showing id_, name, and description
         """
         return f"Sed(id_={self.id_}, name='{self.name}')"
@@ -91,7 +82,6 @@ class TestNamed(Base):
 
         Returns
         -------
-        str
             Just the bad name
         """
         return self.name
@@ -99,7 +89,6 @@ class TestNamed(Base):
 
 class TestRef(Base):
     """Test class for tables with foreign keys into other tables
-
 
     Attributes
     ----------
@@ -131,7 +120,7 @@ class TestRef(Base):
         ForeignKey("test_named.id_", ondelete="CASCADE"),
         index=True,
     )
-        
+
     # Pydantic integration
     @classmethod
     def pydantic_create_class(cls) -> type[BaseModel]:
@@ -142,7 +131,6 @@ class TestRef(Base):
 
         Returns
         -------
-        type[BaseModel]
             The Pydantic model class
         """
         return models.TestRefCreate
@@ -153,7 +141,6 @@ class TestRef(Base):
 
         Returns
         -------
-        type[BaseModel]
             The Pydantic model class for TestRef
         """
         return models.TestRef
@@ -164,7 +151,6 @@ class TestRef(Base):
 
         Returns
         -------
-        str
             The string 'test_ref' for use in help functions and descriptions
         """
         return cls.__tablename__
@@ -174,7 +160,6 @@ class TestRef(Base):
 
         Returns
         -------
-        str
             String showing id_, name, and ref_id
         """
         return f"Sed(id_={self.id_}, name='{self.name}', ref_id={self.ref_id})"
@@ -184,16 +169,13 @@ class TestRef(Base):
 
         Returns
         -------
-        str
             Just the bad name
         """
         return self.name
 
 
-
 class TestListPair(Base):
     """Test class for tables paired lists of values
-
 
     Attributes
     ----------
@@ -215,7 +197,7 @@ class TestListPair(Base):
     ... )
     """
 
-    __tablename__ = "test_ref"
+    __tablename__ = "test_list_pair"
 
     # Primary key
     id_: Mapped[int] = mapped_column(primary_key=True)
@@ -228,7 +210,7 @@ class TestListPair(Base):
 
     #: Second list of values
     list_2: Mapped[list[float]] = mapped_column(JSON)
-        
+
     # Pydantic integration
     @classmethod
     def pydantic_create_class(cls) -> type[BaseModel]:
@@ -239,10 +221,9 @@ class TestListPair(Base):
 
         Returns
         -------
-        type[BaseModel]
             The Pydantic model class
         """
-        return models.TestRefCreate
+        return models.TestListPairCreate
 
     @classmethod
     def pydantic_model_class(cls) -> type[BaseModel]:
@@ -250,10 +231,9 @@ class TestListPair(Base):
 
         Returns
         -------
-        type[BaseModel]
             The Pydantic model class for TestRef
         """
-        return models.TestRef
+        return models.TestListPair
 
     @classmethod
     def class_string(cls) -> str:
@@ -261,7 +241,6 @@ class TestListPair(Base):
 
         Returns
         -------
-        str
             The string 'test_ref' for use in help functions and descriptions
         """
         return cls.__tablename__
@@ -271,7 +250,6 @@ class TestListPair(Base):
 
         Returns
         -------
-        str
             String showing id_, name
         """
         return f"Sed(id_={self.id_}, name='{self.name}'"
@@ -281,13 +259,6 @@ class TestListPair(Base):
 
         Returns
         -------
-        str
             Just the bad name
         """
         return self.name
-
-
-
-
-
-    

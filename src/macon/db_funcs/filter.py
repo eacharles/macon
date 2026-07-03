@@ -12,7 +12,7 @@ import structlog
 from sqlalchemy import Select, asc, desc, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from rail_svc.db.base import T, ensure_base_inheritance
+from ..db.base import T, ensure_base_inheritance
 
 from ..common import unexpected
 from ..models.filtering import Filter, FilterOp, OrderBy
@@ -38,7 +38,6 @@ def _apply_filter(
 
     Returns
     -------
-    Select
         Modified query with filter applied
 
     Raises
@@ -138,7 +137,6 @@ def _apply_ordering(
 
     Returns
     -------
-    Select
         Modified query with ordering applied
 
     Raises
@@ -195,13 +193,10 @@ async def filter_rows(
 
     Returns
     -------
-    Sequence[T]
         All matching rows within the limit
 
     Raises
     ------
-    TypeError
-        If the_class does not inherit from Base
     AttributeError
         If any filter references a non-existent field
     ValueError
@@ -335,13 +330,10 @@ async def filter_rows_streaming(
 
     Yields
     ------
-    T
         Individual rows one at a time
 
     Raises
     ------
-    TypeError
-        If the_class does not inherit from Base
     AttributeError
         If any filter references a non-existent field
     ValueError
@@ -431,13 +423,10 @@ async def count_filtered_rows(
 
     Returns
     -------
-    int
         Number of rows matching the filter criteria
 
     Raises
     ------
-    TypeError
-        If the_class does not inherit from Base
     AttributeError
         If any filter references a non-existent field
     ValueError
@@ -514,13 +503,10 @@ async def filter_one(
 
     Returns
     -------
-    T
         The single matching row
 
     Raises
     ------
-    TypeError
-        If the_class does not inherit from Base
     AttributeError
         If any filter references a non-existent field
     ValueError
@@ -588,13 +574,10 @@ async def filter_one_or_none(
 
     Returns
     -------
-    T | None
         The single matching row, or None if no match found
 
     Raises
     ------
-    TypeError
-        If the_class does not inherit from Base
     AttributeError
         If any filter references a non-existent field
     ValueError
@@ -671,13 +654,10 @@ async def find_by(
 
     Returns
     -------
-    Sequence[T]
         All matching rows
 
     Raises
     ------
-    TypeError
-        If the_class does not inherit from Base
     AttributeError
         If any field doesn't exist on the model
 
@@ -736,13 +716,10 @@ async def find_one_by(
 
     Returns
     -------
-    T
         The single matching row
 
     Raises
     ------
-    TypeError
-        If the_class does not inherit from Base
     AttributeError
         If any field doesn't exist on the model
     KeyError

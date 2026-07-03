@@ -1,12 +1,10 @@
 """Responsex model for load_catalog_yaml function."""
 
-from typing import Any, TypeVar
+from typing import TypeVar
 
 from pydantic import BaseModel
 
 from .filtering import Filter, OrderBy
-from .dataset import Dataset
-from .estimates import Estimates
 
 ResponseT = TypeVar("ResponseT", bound=BaseModel)  # Response schema type
 
@@ -59,4 +57,3 @@ class FindRequest(BaseModel):
         """pydantic config"""
 
         extra = "allow"  # Allow additional fields for query params
-

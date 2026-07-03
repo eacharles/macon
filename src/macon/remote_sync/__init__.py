@@ -1,26 +1,11 @@
-"""Sync wrapper instances for remote table operations.
-
-This module provides factory functions to create synchronous wrappers
-around async remote operations for each database table.
-
-Examples
---------
->>> ops = algorithm()
->>> result = ops.get_row(1)
-
->>> # With custom configuration:
->>> ops = algorithm(timeout=60.0, auth_token="...")
->>> result = ops.get_row(1)
-"""
-
-from typing import Any
+"""Sync wrapper instances for remote table operations."""
 
 from .. import remote_async
-from .base import (
+from .base import SyncRemoteOperations
+from .test_classes import (
     TestNamedSyncRemoteOperations,
     TestRefSyncRemoteOperations,
     TestListPairSyncRemoteOperations,
-    SyncRemoteOperations,
 )
 
 
