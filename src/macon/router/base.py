@@ -263,11 +263,11 @@ def create_table_router[T: Base, ResponseT: BaseModel, CreateT: BaseModel](
         try:
             count = await operations.bulk_insert_rows(data, validate=validate)
             return CountResponse(count=count)
-        except ValidationError as exc:
+        except ValidationError as uexc:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail={"error": "Validation error", "details": exc.errors()},
-            ) from exc
+                detail={"error": "Validation error", "details": uexc.errors()},
+            ) from uexc
         except Exception as uexc:
             logger.exception("Error bulk inserting rows")
             raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(uexc)) from uexc

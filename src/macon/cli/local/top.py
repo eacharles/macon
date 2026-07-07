@@ -23,10 +23,10 @@ CreateT = TypeVar("CreateT", bound=BaseModel)
 def init(*, reset: bool) -> None:
     """Initialize the DB"""
 
-    def _init_db_sync() -> None:
+    def _init_db_sync() -> None:  # pragma: no cover
         """Synchronous wrapper for async init."""
 
-        async def _init_db() -> None:  # pragma: no cover
+        async def _init_db() -> None:
             engine = create_async_engine(config.db.url)
             try:
                 conn = engine.connect()

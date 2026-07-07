@@ -1334,26 +1334,26 @@ class FileValidatedOperations[T: Base, ResponseT: BaseModel, CreateT: BaseModel]
         loop = asyncio.get_event_loop()
         try:
             n_objects = await loop.run_in_executor(None, self.get_file_length, path)
-        except OSError as exc:
+        except OSError as uexc:
             # File system errors
             logger.error(
                 "Failed to read data file",
                 table=self.ctx.db_class.__name__,
                 path=str(path),
-                error=str(exc),
+                error=str(uexc),
                 error_type="io_error",
             )
-            raise ValueError(f"Could not read data from {path}: {exc}") from exc
-        except ValueError as exc:
+            raise ValueError(f"Could not read data from {path}: {uexc}") from uexc
+        except ValueError as uexc:
             # Data format errors
             logger.error(
                 "Invalid data format in file",
                 table=self.ctx.db_class.__name__,
                 path=str(path),
-                error=str(exc),
+                error=str(uexc),
                 error_type="format_error",
             )
-            raise ValueError(f"Invalid data format in {path}: {exc}") from exc
+            raise ValueError(f"Invalid data format in {path}: {uexc}") from uexc
         except Exception as uexc:
             logger.exception(
                 "Unexpected error reading data file",

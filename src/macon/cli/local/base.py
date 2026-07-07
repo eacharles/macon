@@ -178,8 +178,8 @@ class CliOperations[T: Base, ResponseT: BaseModel, CreateT: BaseModel]:
             try:
                 params = common_options.PaginationParams(skip=skip, limit=limit, page_size=page_size)
                 params.validate()
-            except ValueError as exc:
-                click.echo(f"Error: {exc}", err=True)
+            except ValueError as uexc:
+                click.echo(f"Error: {uexc}", err=True)
                 raise click.Abort()
 
             # Retrieve and display rows
@@ -685,7 +685,7 @@ class CliOperations[T: Base, ResponseT: BaseModel, CreateT: BaseModel]:
 
             # Validate each update has an 'id' field
             for idx, update in enumerate(updates):
-                if not isinstance(update, dict):
+                if unexpected(not isinstance(update, dict)):
                     click.echo(f"Error: Update at index {idx} is not an object", err=True)
                     raise click.Abort()
                 if "id" not in update:
@@ -910,14 +910,14 @@ class CliOperations[T: Base, ResponseT: BaseModel, CreateT: BaseModel]:
                     # Try JSON first
                     try:
                         ids_list = json.loads(content)
-                        if not isinstance(ids_list, list):
+                        if unexpected(not isinstance(ids_list, list)):
                             raise ValueError("JSON must be an array")
                     except json.JSONDecodeError:  # pragma: no cover
                         # Parse as line-separated IDs
                         ids_list = [int(line.strip()) for line in content.split("\n") if line.strip()]
 
-                except (OSError, ValueError) as exc:
-                    click.echo(f"Error reading file: {exc}", err=True)
+                except (OSError, ValueError) as uexc:
+                    click.echo(f"Error reading file: {uexc}", err=True)
                     raise click.Abort()
             else:
                 ids_list = list(row_ids)

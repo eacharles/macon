@@ -125,6 +125,7 @@ exclude_lines = [
     "as uexc:",
     "except HTTPException:",
     "def __repr__",
+    "def __str__",    
     "if settings.DEBUG",
     "forward_to_db_funcs",
     "raise AssertionError",

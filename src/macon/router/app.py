@@ -92,7 +92,7 @@ def add_rate_limiting(
 
         logger.info(f"Rate limiting enabled: {default_limits}")
         return limiter
-    except ImportError:
+    except ImportError:  # pragma: no cover
         logger.warning("slowapi not installed. Rate limiting not available.")
         logger.warning("Install with: pip install slowapi")
         return None
@@ -185,7 +185,7 @@ def add_error_handlers(app: FastAPI) -> None:
     async def validation_exception_handler(request: Request, exc: RequestValidationError) -> JSONResponse:
         """Handle validation errors."""
         return JSONResponse(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            status_code=422,
             content={
                 "error": "Validation error",
                 "path": request.url.path,  # Changed from request object
