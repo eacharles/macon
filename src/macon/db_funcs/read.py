@@ -15,7 +15,6 @@ from collections.abc import AsyncIterator, Sequence
 
 import structlog
 from sqlalchemy import func, select
-from sqlalchemy.exc import NoResultFound
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..db.base import T, ensure_base_inheritance
@@ -397,7 +396,7 @@ async def lookup_by_id_or_name(
                 id=the_object.id_,
             )
             return the_object.id_, the_object  # type: ignore
-        except NoResultFound as uexc:
+        except KeyError as uexc:
             logger.error(
                 "Record not found by name",
                 table=the_class.__name__,
@@ -416,7 +415,7 @@ async def lookup_by_id_or_name(
                     id=row_id,
                 )
                 return row_id, the_object
-            except NoResultFound as uexc:
+            except KeyError as uexc:
                 logger.error(
                     "Record not found by ID",
                     table=the_class.__name__,

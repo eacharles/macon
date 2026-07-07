@@ -518,7 +518,7 @@ class RemoteTableOperations[ResponseT: BaseModel, CreateT: BaseModel]:
 
         result = cast(dict[str, Any], self._handle_response(response))
 
-        if not capture_data or result.get("deleted"):
+        if not capture_data:
             return None
 
         return self.response_model(**result)

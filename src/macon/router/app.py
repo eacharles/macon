@@ -74,28 +74,23 @@ def add_rate_limiting(
     Requires: pip install slowapi
     For production, use Redis storage instead of in-memory storage
     """
-    try:
-        if default_limits is None:
-            default_limits = ["1000 per day", "100 per hour"]
+    if default_limits is None:
+        default_limits = ["1000 per day", "100 per hour"]
 
-        limiter = Limiter(
-            key_func=get_remote_address,
-            default_limits=list(default_limits),
-            storage_uri=storage_uri,
-        )
+    limiter = Limiter(
+        key_func=get_remote_address,
+        default_limits=list(default_limits),
+        storage_uri=storage_uri,
+    )
 
-        # Add limiter to app state so it's accessible in routes
-        app.state.limiter = limiter
+    # Add limiter to app state so it's accessible in routes
+    app.state.limiter = limiter
 
-        # Add exception handler for rate limit exceeded
-        app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)  # type: ignore
+    # Add exception handler for rate limit exceeded
+    app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)  # type: ignore
 
-        logger.info(f"Rate limiting enabled: {default_limits}")
-        return limiter
-    except ImportError:  # pragma: no cover
-        logger.warning("slowapi not installed. Rate limiting not available.")
-        logger.warning("Install with: pip install slowapi")
-        return None
+    logger.info(f"Rate limiting enabled: {default_limits}")
+    return limiter
 
 
 def add_health_check(app: FastAPI) -> None:

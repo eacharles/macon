@@ -63,7 +63,7 @@ make init          # creates .venv via uv, installs pre-commit hooks
 ### Testing
 ```bash
 make test-sqlite   # runs pytest with SQLite backend (sets DB__URL)
-pytest tests/      # 765 tests, 99% coverage
+pytest tests/      # 767 tests, 99% coverage
 ```
 
 Coverage exclusion patterns (in `pyproject.toml`):

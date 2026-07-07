@@ -166,7 +166,7 @@ def slice_to_str(value: slice | int | None) -> str | None:
     if value is None:
         return None
     if isinstance(value, int):
-        return str(int)
+        return str(value)
 
     s = ""
     if value.start is not None:

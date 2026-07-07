@@ -769,4 +769,4 @@ def ensure_base_inheritance(cls: type[Any]) -> None:
     TypeError: Class BadModel must inherit from rail_svc.db.base.Base
     """
     if not issubclass(cls, Base):
-        raise TypeError(f"Class {cls.__name__} must inherit from rail_svc.db.base.Base")
+        raise TypeError(f"Class {cls.__name__} must inherit from macon.db.base.Base")

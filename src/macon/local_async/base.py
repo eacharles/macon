@@ -240,15 +240,16 @@ class LocalOperations[T: Base, ResponseT: BaseModel, CreateT: BaseModel]:
         row_id: int | None,
         name: str | None,
         *,
-        need_object: bool = False,  # pylint: disable=unused-argument
+        need_object: bool = True,
     ) -> tuple[int, ResponseT | None]:
         row_id_resolved, row = await self._table_ops.lookup_by_id_or_name(
             session,
             row_id,
             name,
-            need_object=True,
+            need_object=need_object,
         )
-        assert row
+        if row is None:
+            return row_id_resolved, None
         return row_id_resolved, self._table_ops.to_pydantic(row)
 
     @with_session_transaction

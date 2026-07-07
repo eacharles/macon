@@ -1322,8 +1322,8 @@ class FileValidatedOperations[T: Base, ResponseT: BaseModel, CreateT: BaseModel]
         # Reserved for future use: validate data matches reference_obj schema
         _ = reference_obj
 
-        asnyc_path = anyio.Path(path)
-        if not await asnyc_path.exists():
+        async_path = anyio.Path(path)
+        if not await async_path.exists():
             logger.error(
                 "Data file not found",
                 table=self.ctx.db_class.__name__,

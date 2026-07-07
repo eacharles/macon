@@ -597,7 +597,11 @@ def create_table_router[T: Base, ResponseT: BaseModel, CreateT: BaseModel](
         try:
             result = await operations.delete_rows(data, capture_data=capture_data)
             if capture_data:
-                assert result is not None
+                if result is None:
+                    raise HTTPException(
+                        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                        detail="Expected result data when capture_data=True",
+                    )
                 return [response_model(**item_) for item_ in result]
             return CountResponse(count=len(data))
         except Exception as uexc:

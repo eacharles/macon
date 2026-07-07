@@ -99,3 +99,21 @@ class TestTableSyncOperationsReadSlice:
                 result = sync_ops.read_slice(1, slice(0, 2))
 
         assert result == {"data": [10, 20]}
+
+
+class TestLookupByIdOrNameNeedObjectFalse:
+    async def test_returns_none_when_need_object_false(self, init_test_db):
+        from macon.local_async import test_named
+        from macon.db.test_classes import TestNamed
+        from macon.db.session import _engine, get_session
+        from macon.db.base import Base
+
+        async with _engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
+
+        async with get_session() as session:
+            session.add(TestNamed(name="lookup_test"))
+
+        row_id, result = await test_named.lookup_by_id_or_name(1, None, need_object=False)
+        assert row_id == 1
+        assert result is None

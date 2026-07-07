@@ -247,8 +247,10 @@ class StorageConfiguration(BaseModel):
     @field_validator("archive", "import_area", "download_area")
     @classmethod
     def ensure_path_exists(cls, v: str) -> str:
-        """Ensure storage path exists"""
+        """Ensure storage path exists if it is an absolute path."""
         path = Path(v)
+        if not path.is_absolute():
+            return v
         if not path.exists():
             raise ValueError(f"Path {path} does not exist")
         if not path.is_dir():  # pragma: no cover
