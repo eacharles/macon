@@ -35,7 +35,7 @@ CLI (click)
 - **Generic typing**: `TableOperations[T, ResponseT, CreateT]` — T is the SQLAlchemy model, ResponseT/CreateT are Pydantic models.
 - **Lifecycle hooks**: `Base` provides `pre_create_hook`, `after_create_hook`, `pre_update_hook`, `after_update_hook`, `pre_delete_hook`, `after_delete_hook`.
 - **Filter system**: `Filter(field, op, value)` with `FilterOp` enum (eq, ne, lt, gt, like, between, etc.) + `OrderBy`.
-- **File-backed tables**: `FileValidatedOperations` subclass handles load/download with path security validation.
+- **File-backed tables**: `FileValidatedOperations` subclass handles load/read_slice with path security validation. Uses `tables_io` for HDF5/parquet I/O.
 - **Decorator patterns**: `@with_session`, `@with_session_transaction`, `@to_pydantic`, `@forward_to_db_funcs`.
 
 ## Test Tables
@@ -44,6 +44,7 @@ The package includes example/test tables demonstrating the patterns:
 - `TestNamed` — simple table with unique name
 - `TestRef` — table with a foreign key reference to TestNamed
 - `TestListPair` — table storing paired lists of values (JSON columns)
+- `TestTable` — file-backed table using `tables_io` for HDF5 load/read_slice operations
 
 ## Transaction Management
 
@@ -62,8 +63,14 @@ make init          # creates .venv via uv, installs pre-commit hooks
 ### Testing
 ```bash
 make test-sqlite   # runs pytest with SQLite backend (sets DB__URL)
-pytest tests/      # 369 tests, 73% coverage
+pytest tests/      # 717 tests, 93% coverage
 ```
+
+Coverage exclusion patterns (in `pyproject.toml`):
+- `"as uexc:"` — unexpected exception handlers (rename `as exc:` to `as uexc:` to exclude)
+- `"except HTTPException:"` — re-raise patterns in router
+- `"unexpected"` — calls wrapped in the `unexpected()` guard
+- `"pragma: no cover"` — explicit exclusion
 
 ### Linting & Type Checking
 ```bash
@@ -71,7 +78,7 @@ make lint          # pre-commit (ruff format + lint, trailing whitespace, yamlli
 make typing        # mypy src tests
 ruff check src/ tests/   # lint
 ruff format src/ tests/  # format
-pylint src/macon/        # 9.98/10
+pylint src/macon/        # 9.99/10
 ```
 
 ### Documentation
@@ -87,6 +94,7 @@ cd docs && make html     # builds to docs/_build/html/
 - Environment variable nesting delimiter: `__` (e.g., `DB__URL`, `STORAGE__ARCHIVE`)
 - Client env vars: `MACON_SERVICE_URL`, `MACON_AUTH_TOKEN`, `MACON_TIMEOUT`
 - Remote CLI env vars: `MACON_BASE_URL`, `MACON_AUTH_TOKEN`
+- Test dependency: `tables_io` (HDF5/parquet I/O for TestTable)
 - Default DB: `sqlite+aiosqlite:///macon.db`
 - Line length: 110 (ruff), 120 (pylint)
 - Python: 3.13+ required
