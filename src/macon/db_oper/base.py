@@ -543,12 +543,12 @@ class TableOperations[T: Base, ResponseT: BaseModel, CreateT: BaseModel]:
 
                 processed_rows_data.append(modified_kwargs)
 
-            except Exception as e:
+            except Exception as uexc:
                 logger.error(
                     "Failed to prepare row",
                     table=self.ctx.db_class.__name__,
                     row_index=idx,
-                    error=str(e),
+                    error=str(uexc),
                 )
                 raise
 
@@ -1078,8 +1078,6 @@ class FileValidatedOperations[T: Base, ResponseT: BaseModel, CreateT: BaseModel]
 
     Subclasses must implement:
         - get_file_length(path): Extract object count from file
-        - get_create_kwargs(): Handle foreign key resolution and
-          call _process_path() with appropriate reference object
         - get_subdirectory(): Return subdirectory name for this type
           (e.g., "datasets", "models", "estimates")
 
@@ -1101,14 +1099,6 @@ class FileValidatedOperations[T: Base, ResponseT: BaseModel, CreateT: BaseModel]
     ...
     ...     def get_subdirectory(self) -> str:
     ...         return "datasets"
-    ...
-    ...     async def get_create_kwargs(self, session, **kwargs):
-    ...         # Resolve foreign keys, then validate file
-    ...         catalog_tag_id, catalog_tag = await lookup_by_id_or_name(...)
-    ...         n_objects = await self._process_path(
-    ...             path, catalog_tag, validate_file, extra_kwargs
-    ...         )
-    ...         return {"catalog_tag_id": catalog_tag_id, "n_objects": n_objects}
     """
 
     @abstractmethod
@@ -1254,12 +1244,12 @@ class FileValidatedOperations[T: Base, ResponseT: BaseModel, CreateT: BaseModel]
                     # Store n_objects in kwargs for later use
                     if "n_objects" not in kwargs:
                         kwargs["n_objects"] = n_objects
-                except Exception as exc:
+                except Exception as uexc:
                     logger.error(
                         "File validation failed",
                         table=self.ctx.db_class.__name__,
                         path=str(validation_path),
-                        error=str(exc),
+                        error=str(uexc),
                     )
                     raise
 
@@ -1294,80 +1284,6 @@ class FileValidatedOperations[T: Base, ResponseT: BaseModel, CreateT: BaseModel]
                     record_id=getattr(new_record, "id", None),
                 )
                 return self.to_pydantic(new_record)
-
-    async def _process_path(
-        self,
-        path: str | None,
-        reference_obj: Base | None,
-        *,
-        validate_file: bool,
-        extra_kwargs: dict[str, Any],
-    ) -> int:
-        """Process file path and determine n_objects.
-
-        Parameters
-        ----------
-        path
-            File path (relative to archive)
-        reference_obj
-            Reference object for validation (may be None). Typically used
-            to validate file contents match expected schema.
-        validate_file
-            Whether to validate file
-        extra_kwargs
-            Additional kwargs that may contain n_objects
-
-        Returns
-        -------
-            Number of objects in file
-
-        Raises
-        ------
-        ValueError
-            If path invalid, validation fails, or n_objects not provided
-            when needed
-        FileNotFoundError
-            If file doesn't exist when validation enabled
-        """
-        if path is None:
-            # No path - must have n_objects in extra_kwargs
-            n_objects = extra_kwargs.get("n_objects")
-            if n_objects is None:
-                logger.warning(
-                    "No path or n_objects provided",
-                    table=self.ctx.db_class.__name__,
-                )
-                raise ValueError("Either 'path' or 'n_objects' must be provided")
-            return n_objects
-
-        if not validate_file:
-            # Path provided but validation disabled - use provided n_objects
-            n_objects = extra_kwargs.get("n_objects")
-            if n_objects is None:
-                logger.warning(
-                    "File validation disabled but n_objects not provided",
-                    table=self.ctx.db_class.__name__,
-                    path=path,
-                )
-                raise ValueError("When validate_file=False, 'n_objects' must be provided")
-            return n_objects
-
-        # Validate path and file
-        fullpath = self._validate_path_security(path)
-        n_objects = await self.validate_data_for_path(fullpath, reference_obj)
-
-        # Check against user-provided value if present
-        user_n_objects = extra_kwargs.get("n_objects")
-        if user_n_objects is not None and user_n_objects != n_objects:
-            logger.warning(
-                "Provided n_objects doesn't match file content",
-                table=self.ctx.db_class.__name__,
-                path=path,
-                provided=user_n_objects,
-                actual=n_objects,
-            )
-
-        return n_objects
 
     async def validate_data_for_path(
         self,
@@ -1438,14 +1354,13 @@ class FileValidatedOperations[T: Base, ResponseT: BaseModel, CreateT: BaseModel]
                 error_type="format_error",
             )
             raise ValueError(f"Invalid data format in {path}: {exc}") from exc
-        except Exception as exc:
-            # Unexpected errors - log with full traceback and re-raise
+        except Exception as uexc:
             logger.exception(
                 "Unexpected error reading data file",
                 table=self.ctx.db_class.__name__,
                 path=str(path),
             )
-            raise ValueError(f"Unexpected error reading {path}: {exc}") from exc
+            raise ValueError(f"Unexpected error reading {path}: {uexc}") from uexc
 
         logger.debug(
             "Data file validated",

@@ -2,7 +2,7 @@
 
 from pydantic import BaseModel
 from sqlalchemy import ForeignKey
-from sqlalchemy import JSON, String
+from sqlalchemy import JSON, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from .. import models
@@ -261,4 +261,45 @@ class TestListPair(Base):
         -------
             Just the bad name
         """
+        return self.name
+
+
+class TestTable(Base):
+    """Test class for file-backed tables with external data files.
+
+    Attributes
+    ----------
+    id_ : int
+        Primary key, auto-incrementing unique identifier
+    name : str
+        Unique name for this row
+    path : str
+        Path to the external data file (relative to archive)
+    n_objects : int
+        Number of objects/rows in the external file
+    """
+
+    __tablename__ = "test_table"
+
+    id_: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(255), index=True, unique=True)
+    path: Mapped[str] = mapped_column(String(1024))
+    n_objects: Mapped[int] = mapped_column(Integer)
+
+    @classmethod
+    def pydantic_create_class(cls) -> type[BaseModel]:
+        return models.TestTableCreate
+
+    @classmethod
+    def pydantic_model_class(cls) -> type[BaseModel]:
+        return models.TestTable
+
+    @classmethod
+    def class_string(cls) -> str:
+        return cls.__tablename__
+
+    def __repr__(self) -> str:
+        return f"TestTable(id_={self.id_}, name='{self.name}', n_objects={self.n_objects})"
+
+    def __str__(self) -> str:
         return self.name

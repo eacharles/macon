@@ -111,3 +111,27 @@ class TestListPair(TestListPairBase):
 
     #: primary key
     id_: int = Field(..., gt=0)
+
+
+class TestTableCreate(BaseModel):
+    """Parameters used to create a new TestTable row."""
+
+    name: str = Field(..., description="Unique name for this table")
+
+
+class TestTable(BaseModel):
+    """Response model for a file-backed test table."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    col_names_for_table: ClassVar[list[str]] = [
+        "id_",
+        "name",
+        "path",
+        "n_objects",
+    ]
+
+    id_: int = Field(..., gt=0)
+    name: str
+    path: str
+    n_objects: int

@@ -6,6 +6,8 @@ from .test_classes import (
     TestRefCreate,
     TestListPair,
     TestListPairCreate,
+    TestTable,
+    TestTableCreate,
 )
 from .web import (
     AsyncRouteError,
@@ -34,4 +36,6 @@ __all__ = [
     "TestRefCreate",
     "TestListPair",
     "TestListPairCreate",
+    "TestTable",
+    "TestTableCreate",
 ]

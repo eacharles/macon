@@ -4,7 +4,6 @@ import json
 import logging
 from typing import Any, TypeVar, cast
 
-import aiofiles
 import click
 from pydantic import BaseModel, ValidationError
 from sqlalchemy.exc import IntegrityError
@@ -97,48 +96,6 @@ class CliOperations[T: Base, ResponseT: BaseModel, CreateT: BaseModel]:
         self.ctx = sync_oper.async_ops._table_ops.ctx
         self.group = group
         self.col_names_for_table = self.ctx.response_class.col_names_for_table  # type: ignore
-
-    # ========================================================================
-    # UTILITY METHODS
-    # ========================================================================
-
-    async def _load_json_file(self, json_file: str) -> list[dict[str, Any]]:
-        """Load and validate JSON array from file.
-
-        Parameters
-        ----------
-        json_file
-            Path to JSON file containing array of objects
-
-        Returns
-        -------
-            Parsed JSON data
-
-        Raises
-        ------
-        click.Abort
-            If file cannot be read, JSON is invalid, or not an array
-        """
-        try:
-            async with aiofiles.open(json_file) as f:
-                content = await f.read()
-                rows_data = json.loads(content)
-        except json.JSONDecodeError as exc:
-            click.echo(f"Error: Invalid JSON file: {exc}", err=True)
-            raise click.Abort()
-        except OSError as exc:
-            click.echo(f"Error: Cannot read file: {exc}", err=True)
-            raise click.Abort()
-
-        if not isinstance(rows_data, list):
-            click.echo("Error: JSON file must contain an array", err=True)
-            raise click.Abort()
-
-        if not rows_data:
-            click.echo("Error: Array is empty", err=True)
-            raise click.Abort()
-
-        return rows_data
 
     # ========================================================================
     # READ COMMAND REGISTRATION

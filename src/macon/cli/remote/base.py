@@ -88,37 +88,6 @@ class CliRemoteOperations[ResponseT: BaseModel, CreateT: BaseModel]:
         self.col_names_for_table = self.response_model.col_names_for_table  # type: ignore
 
     # ========================================================================
-    # UTILITY METHODS
-    # ========================================================================
-
-    def _handle_error(self, exc: Exception, context: str = "") -> None:
-        """Handle common errors with appropriate messages.
-
-        Parameters
-        ----------
-        exc
-            Exception that was raised
-        context
-            Additional context about when the error occurred
-
-        Raises
-        ------
-        click.Abort
-            Always raises to terminate command
-        """
-        context_msg = f" {context}" if context else ""
-
-        if isinstance(exc, ValidationError):
-            click.echo(f"Error: Validation failed{context_msg}: {exc}", err=True)
-        elif isinstance(exc, ValueError):
-            click.echo(f"Error{context_msg}: {exc}", err=True)
-        else:  # pragma: no cover
-            logger.error(f"Unexpected error{context_msg}", exc_info=exc)
-            click.echo(f"Error{context_msg}: {exc}", err=True)
-
-        raise click.Abort()
-
-    # ========================================================================
     # READ COMMAND REGISTRATION
     # ========================================================================
 
@@ -140,8 +109,8 @@ class CliRemoteOperations[ResponseT: BaseModel, CreateT: BaseModel]:
                 row = self.sync_oper.get_row(row_id=row_id)  # type: ignore
                 print(output_pydantic([row], output, self.col_names_for_table))
 
-            except Exception as exc:
-                handle_error(exc, f"getting {self.table_name} with ID {row_id}")
+            except Exception as uexc:
+                handle_error(uexc, f"getting {self.table_name} with ID {row_id}")
 
     def register_get_row_by_name(self) -> None:
         """Register the get-row-by-name command to the group.
@@ -161,8 +130,8 @@ class CliRemoteOperations[ResponseT: BaseModel, CreateT: BaseModel]:
                 row = self.sync_oper.get_row_by_name(name=name)  # type: ignore
                 print(output_pydantic([row], output, self.col_names_for_table))
 
-            except Exception as exc:
-                handle_error(exc, f"getting {self.table_name} with name '{name}'")
+            except Exception as uexc:
+                handle_error(uexc, f"getting {self.table_name} with name '{name}'")
 
     def register_get_rows(self) -> None:
         """Register the get-rows command to the group.
@@ -199,8 +168,8 @@ class CliRemoteOperations[ResponseT: BaseModel, CreateT: BaseModel]:
                 )
                 print(output_pydantic(rows, output, self.col_names_for_table))
 
-            except Exception as exc:
-                handle_error(exc, f"listing {self.table_name} rows")
+            except Exception as uexc:
+                handle_error(uexc, f"listing {self.table_name} rows")
 
     def register_get_row_or_none(self) -> None:
         """Register the get-row-or-none command to the group.
@@ -244,8 +213,8 @@ class CliRemoteOperations[ResponseT: BaseModel, CreateT: BaseModel]:
                 count = self.sync_oper.count_rows()  # type: ignore
                 click.echo(f"Total {self.table_name} rows: {count}")
 
-            except Exception as exc:
-                handle_error(exc, f"counting {self.table_name} rows")
+            except Exception as uexc:
+                handle_error(uexc, f"counting {self.table_name} rows")
 
     def register_lookup_by_id_or_name(self) -> None:
         """Register the lookup command to the group.
@@ -357,8 +326,8 @@ class CliRemoteOperations[ResponseT: BaseModel, CreateT: BaseModel]:
                 click.echo(f"Created {self.table_name} row successfully")
                 print(output_pydantic([row], output, self.col_names_for_table))
 
-            except Exception as exc:
-                handle_error(exc, f"creating {self.table_name} row")
+            except Exception as uexc:
+                handle_error(uexc, f"creating {self.table_name} row")
 
     def register_create_rows(self) -> None:
         """Register the create-rows command to the group.
@@ -406,8 +375,8 @@ class CliRemoteOperations[ResponseT: BaseModel, CreateT: BaseModel]:
                 click.echo(f"Successfully created {len(rows)} {self.table_name} rows")
                 print(output_pydantic(rows, output, self.col_names_for_table))
 
-            except Exception as exc:
-                handle_error(exc, f"creating {self.table_name} rows")
+            except Exception as uexc:
+                handle_error(uexc, f"creating {self.table_name} rows")
 
     def register_create_rows_batched(self) -> None:
         """Register the create-rows-batched command to the group.
@@ -467,8 +436,8 @@ class CliRemoteOperations[ResponseT: BaseModel, CreateT: BaseModel]:
                 )
                 print(output_pydantic(rows, output, self.col_names_for_table))
 
-            except Exception as exc:
-                handle_error(exc, f"creating {self.table_name} rows in batches")
+            except Exception as uexc:
+                handle_error(uexc, f"creating {self.table_name} rows in batches")
 
     def register_bulk_insert_rows(self) -> None:
         """Register the bulk-insert command to the group.
@@ -516,8 +485,8 @@ class CliRemoteOperations[ResponseT: BaseModel, CreateT: BaseModel]:
                 count = self.sync_oper.bulk_insert_rows(rows_data=rows_data, validate=not no_validate)  # type: ignore
                 click.echo(f"Successfully inserted {count} {self.table_name} rows")
 
-            except Exception as exc:
-                handle_error(exc, f"bulk inserting {self.table_name} rows")
+            except Exception as uexc:
+                handle_error(uexc, f"bulk inserting {self.table_name} rows")
 
     def register_all_create_commands(self) -> None:
         """Register all create commands to the group.
@@ -664,8 +633,8 @@ class CliRemoteOperations[ResponseT: BaseModel, CreateT: BaseModel]:
                 click.echo(f"Successfully updated {len(rows)} {self.table_name} rows")
                 print(output_pydantic(rows, output, self.col_names_for_table))
 
-            except Exception as exc:
-                handle_error(exc, f"updating {self.table_name} rows")
+            except Exception as uexc:
+                handle_error(uexc, f"updating {self.table_name} rows")
 
     def register_all_update_commands(self) -> None:
         """Register all update commands to the group.
@@ -804,8 +773,8 @@ class CliRemoteOperations[ResponseT: BaseModel, CreateT: BaseModel]:
                 else:
                     click.echo(f"Successfully deleted {deleted_data} {self.table_name} rows")
 
-            except Exception as exc:
-                handle_error(exc, f"deleting {len(ids_list)} {self.table_name} rows")
+            except Exception as uexc:
+                handle_error(uexc, f"deleting {len(ids_list)} {self.table_name} rows")
 
     def register_bulk_delete_rows(self) -> None:
         """Register the bulk-delete command to the group.
@@ -884,8 +853,8 @@ class CliRemoteOperations[ResponseT: BaseModel, CreateT: BaseModel]:
                 if count != len(ids_list):
                     click.echo(f"Note: {len(ids_list) - count} IDs were not found", err=True)
 
-            except Exception as exc:
-                handle_error(exc, f"bulk deleting {len(ids_list)} {self.table_name} rows")
+            except Exception as uexc:
+                handle_error(uexc, f"bulk deleting {len(ids_list)} {self.table_name} rows")
 
     def register_all_delete_commands(self) -> None:
         """Register all delete commands to the group.
@@ -1027,8 +996,8 @@ class CliRemoteOperations[ResponseT: BaseModel, CreateT: BaseModel]:
                 click.echo(f"Found {len(rows)} matching {self.table_name} rows")
                 print(output_pydantic(rows, output, self.col_names_for_table))
 
-            except Exception as exc:
-                handle_error(exc, f"filtering {self.table_name} rows")
+            except Exception as uexc:
+                handle_error(uexc, f"filtering {self.table_name} rows")
 
     def register_count_filtered_rows(self) -> None:
         """Register the count-filtered command to the group.
@@ -1096,8 +1065,8 @@ class CliRemoteOperations[ResponseT: BaseModel, CreateT: BaseModel]:
                 filter_desc = "all" if not filters else "matching"
                 click.echo(f"Total {filter_desc} {self.table_name} rows: {count}")
 
-            except Exception as exc:
-                handle_error(exc, f"counting filtered {self.table_name} rows")
+            except Exception as uexc:
+                handle_error(uexc, f"counting filtered {self.table_name} rows")
 
     def register_find_by(self) -> None:
         """Register the find-by command to the group.
@@ -1171,8 +1140,8 @@ class CliRemoteOperations[ResponseT: BaseModel, CreateT: BaseModel]:
                 click.echo(f"Found {len(rows)} matching {self.table_name} rows")
                 print(output_pydantic(rows, output, self.col_names_for_table))
 
-            except Exception as exc:
-                handle_error(exc, f"finding {self.table_name} rows")
+            except Exception as uexc:
+                handle_error(uexc, f"finding {self.table_name} rows")
 
     def register_find_one_by(self) -> None:
         """Register the find-one-by command to the group.
@@ -1217,8 +1186,8 @@ class CliRemoteOperations[ResponseT: BaseModel, CreateT: BaseModel]:
                 row = self.sync_oper.find_one_by(**kwargs)  # type: ignore
                 print(output_pydantic([row], output, self.col_names_for_table))
 
-            except Exception as exc:
-                handle_error(exc, f"finding {self.table_name}")
+            except Exception as uexc:
+                handle_error(uexc, f"finding {self.table_name}")
 
     def register_all_filter_commands(self) -> None:
         """Register all filter commands to the group.

@@ -64,6 +64,7 @@ dev = [
     "mypy",
     "ruff>=0.8.0",
     "pylint",
+    "tables_io",
     "types-pyyaml>=6.0.12.20240917",
     "types-tabulate>=0.9.0.20240106",
 ]
@@ -122,6 +123,7 @@ exclude_lines = [
     "pragma: no cover",
     "unexpected",
     "as uexc:",
+    "except HTTPException:",
     "def __repr__",
     "if settings.DEBUG",
     "forward_to_db_funcs",

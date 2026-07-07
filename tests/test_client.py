@@ -225,6 +225,238 @@ class TestFilterOperations:
         assert result.name == "one"
 
 
+class TestStreamingOperations:
+    async def test_get_rows_streaming(self, ops, mock_client):
+        lines = [
+            '{"id_": 1, "name": "alpha"}',
+            '{"id_": 2, "name": "beta"}',
+            '{"id_": 3, "name": "gamma"}',
+        ]
+
+        mock_response = AsyncMock()
+        mock_response.status_code = 200
+        mock_response.aiter_lines = lambda: _async_iter(lines)
+
+        mock_client.stream.return_value = _async_context_manager(mock_response)
+
+        rows = []
+        async for row in ops.get_rows_streaming(skip=0, limit=10):
+            rows.append(row)
+
+        assert len(rows) == 3
+        assert rows[0].name == "alpha"
+        assert rows[2].name == "gamma"
+
+    async def test_get_rows_streaming_with_skip(self, ops, mock_client):
+        lines = ['{"id_": 5, "name": "epsilon"}']
+
+        mock_response = AsyncMock()
+        mock_response.status_code = 200
+        mock_response.aiter_lines = lambda: _async_iter(lines)
+
+        mock_client.stream.return_value = _async_context_manager(mock_response)
+
+        rows = []
+        async for row in ops.get_rows_streaming(skip=4, limit=1):
+            rows.append(row)
+
+        assert len(rows) == 1
+        call_args = mock_client.stream.call_args
+        assert call_args[1]["params"]["skip"] == 4
+        assert call_args[1]["params"]["limit"] == 1
+
+    async def test_get_rows_streaming_empty(self, ops, mock_client):
+        mock_response = AsyncMock()
+        mock_response.status_code = 200
+        mock_response.aiter_lines = lambda: _async_iter([])
+
+        mock_client.stream.return_value = _async_context_manager(mock_response)
+
+        rows = []
+        async for row in ops.get_rows_streaming(skip=0, limit=10):
+            rows.append(row)
+
+        assert rows == []
+
+    async def test_get_rows_streaming_skips_blank_lines(self, ops, mock_client):
+        lines = ['{"id_": 1, "name": "a"}', "", "  ", '{"id_": 2, "name": "b"}']
+
+        mock_response = AsyncMock()
+        mock_response.status_code = 200
+        mock_response.aiter_lines = lambda: _async_iter(lines)
+
+        mock_client.stream.return_value = _async_context_manager(mock_response)
+
+        rows = []
+        async for row in ops.get_rows_streaming(skip=0, limit=10):
+            rows.append(row)
+
+        assert len(rows) == 2
+
+    async def test_get_rows_streaming_error_status(self, ops, mock_client):
+        mock_response = AsyncMock()
+        mock_response.status_code = 500
+        mock_response.aread = AsyncMock(return_value=b"Internal Server Error")
+
+        mock_client.stream.return_value = _async_context_manager(mock_response)
+
+        with pytest.raises(RemoteAPIError, match="500"):
+            async for _ in ops.get_rows_streaming(skip=0, limit=10):
+                pass
+
+    async def test_get_rows_streaming_error_in_stream(self, ops, mock_client):
+        lines = ['{"error": "something went wrong"}']
+
+        mock_response = AsyncMock()
+        mock_response.status_code = 200
+        mock_response.aiter_lines = lambda: _async_iter(lines)
+
+        mock_client.stream.return_value = _async_context_manager(mock_response)
+
+        with pytest.raises(RemoteAPIError, match="something went wrong"):
+            async for _ in ops.get_rows_streaming(skip=0, limit=10):
+                pass
+
+    async def test_get_rows_streaming_malformed_line_raises(self, ops, mock_client):
+        from pydantic import ValidationError
+
+        lines = ['{"id_": 1, "name": "good"}', "not valid json or model"]
+
+        mock_response = AsyncMock()
+        mock_response.status_code = 200
+        mock_response.aiter_lines = lambda: _async_iter(lines)
+
+        mock_client.stream.return_value = _async_context_manager(mock_response)
+
+        rows = []
+        with pytest.raises(ValidationError):
+            async for row in ops.get_rows_streaming(skip=0, limit=10):
+                rows.append(row)
+
+        # First valid line was yielded before the error
+        assert len(rows) == 1
+        assert rows[0].name == "good"
+
+
+def _async_context_manager(value):
+    """Create an async context manager that yields a value."""
+
+    class _ACM:
+        async def __aenter__(self):
+            return value
+
+        async def __aexit__(self, *args):
+            pass
+
+    return _ACM()
+
+
+async def _async_iter(items):
+    """Create an async iterator from a list."""
+    for item in items:
+        yield item
+
+
+class TestFilterRowsStreaming:
+    async def test_filter_streaming_happy_path(self, ops, mock_client):
+        lines = [
+            '{"id_": 1, "name": "alpha"}',
+            '{"id_": 2, "name": "beta"}',
+        ]
+
+        mock_response = AsyncMock()
+        mock_response.status_code = 200
+        mock_response.aiter_lines = lambda: _async_iter(lines)
+
+        mock_client.stream.return_value = _async_context_manager(mock_response)
+
+        rows = []
+        async for row in ops.filter_rows_streaming(
+            filters=[Filter(field="name", op=FilterOp.LIKE, value="%a%")],
+            logical_op="and",
+            limit=10,
+        ):
+            rows.append(row)
+
+        assert len(rows) == 2
+        assert rows[0].name == "alpha"
+        mock_client.stream.assert_called_once()
+        call_args = mock_client.stream.call_args
+        assert call_args[0][0] == "POST"
+        assert "filter_rows_streaming" in call_args[0][1]
+
+    async def test_filter_streaming_with_or_logic(self, ops, mock_client):
+        lines = ['{"id_": 1, "name": "a"}', '{"id_": 2, "name": "b"}']
+
+        mock_response = AsyncMock()
+        mock_response.status_code = 200
+        mock_response.aiter_lines = lambda: _async_iter(lines)
+
+        mock_client.stream.return_value = _async_context_manager(mock_response)
+
+        rows = []
+        async for row in ops.filter_rows_streaming(
+            filters=[
+                Filter(field="name", op=FilterOp.EQ, value="a"),
+                Filter(field="name", op=FilterOp.EQ, value="b"),
+            ],
+            logical_op="or",
+        ):
+            rows.append(row)
+
+        assert len(rows) == 2
+        call_json = mock_client.stream.call_args[1]["json"]
+        assert call_json["logical_op"] == "or"
+
+    async def test_filter_streaming_with_skip_and_limit(self, ops, mock_client):
+        lines = ['{"id_": 3, "name": "gamma"}']
+
+        mock_response = AsyncMock()
+        mock_response.status_code = 200
+        mock_response.aiter_lines = lambda: _async_iter(lines)
+
+        mock_client.stream.return_value = _async_context_manager(mock_response)
+
+        rows = []
+        async for row in ops.filter_rows_streaming(skip=2, limit=1):
+            rows.append(row)
+
+        assert len(rows) == 1
+        call_json = mock_client.stream.call_args[1]["json"]
+        assert call_json["skip"] == 2
+        assert call_json["limit"] == 1
+
+    async def test_filter_streaming_empty(self, ops, mock_client):
+        mock_response = AsyncMock()
+        mock_response.status_code = 200
+        mock_response.aiter_lines = lambda: _async_iter([])
+
+        mock_client.stream.return_value = _async_context_manager(mock_response)
+
+        rows = []
+        async for row in ops.filter_rows_streaming(
+            filters=[Filter(field="name", op=FilterOp.EQ, value="nonexistent")],
+        ):
+            rows.append(row)
+
+        assert rows == []
+
+    async def test_filter_streaming_error_in_stream(self, ops, mock_client):
+        lines = ['{"error": "filter field not found"}']
+
+        mock_response = AsyncMock()
+        mock_response.status_code = 200
+        mock_response.aiter_lines = lambda: _async_iter(lines)
+
+        mock_client.stream.return_value = _async_context_manager(mock_response)
+
+        with pytest.raises(RemoteAPIError, match="filter field not found"):
+            async for _ in ops.filter_rows_streaming(
+                filters=[Filter(field="bogus", op=FilterOp.EQ, value="x")],
+            ):
+                pass
+
+
 class TestRemoteAPI:
     async def test_context_manager(self):
         async with RemoteAPI("http://localhost:8000") as api:

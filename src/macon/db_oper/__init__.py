@@ -5,7 +5,7 @@ from .base import (
     TableOperations,
     FileValidatedOperations,
 )
-from .test_classes import test_named, test_ref, test_list_pair
+from .test_classes import test_named, test_ref, test_list_pair, test_table
 
 __all__ = [
     "forward_to_db_funcs",
@@ -16,4 +16,5 @@ __all__ = [
     "test_named",
     "test_ref",
     "test_list_pair",
+    "test_table",
 ]
