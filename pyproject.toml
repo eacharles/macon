@@ -40,6 +40,7 @@ db = [
     "anyio",
     "aiosqlite",
     "aiofiles",
+    "uuid_utils",
 ]
 
 server = [

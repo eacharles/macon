@@ -19,7 +19,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..db.base import T, ensure_base_inheritance
 
-from ..common import unexpected
+from ..common import RowId, unexpected
 
 logger = structlog.get_logger(__name__)
 
@@ -27,7 +27,7 @@ logger = structlog.get_logger(__name__)
 async def get_row(
     the_class: type[T],
     session: AsyncSession,
-    row_id: int,
+    row_id: RowId,
 ) -> T:
     """Get a single row by primary key.
 
@@ -233,7 +233,7 @@ async def get_rows_streaming(
 async def get_row_or_none(
     the_class: type[T],
     session: AsyncSession,
-    row_id: int,
+    row_id: RowId,
 ) -> T | None:
     """Get a single row by ID, returning None if not found.
 
@@ -297,11 +297,11 @@ async def count_rows(
 async def lookup_by_id_or_name(
     the_class: type[T],
     session: AsyncSession,
-    row_id: int | None,
+    row_id: RowId | None,
     name: str | None,
     *,
     need_object: bool = False,
-) -> tuple[int, T | None]:
+) -> tuple[RowId, T | None]:
     """Look up a database record by ID or name.
 
     This is a generic helper function for resolving foreign keys. It handles

@@ -9,6 +9,7 @@ import tables_io.io_utils.iterator
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .. import db, db_funcs, models
+from ..common import RowId
 from ..config import config as global_config
 from .base import FileValidatedOperations, TableContext, TableOperations
 
@@ -71,7 +72,7 @@ class TestTableOperations(FileValidatedOperations[db.TestTable, models.TestTable
     async def read_slice(
         self,
         session: AsyncSession,
-        row_id: int,
+        row_id: RowId,
         the_slice: slice | int | None = None,
     ) -> dict[str, Any]:
         """Read a slice of data from the file associated with a row.

@@ -7,7 +7,7 @@ from fastapi import APIRouter, Body, Header, HTTPException, Query, status
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, ValidationError
 
-from ..common import unexpected
+from ..common import RowId, parse_row_id, unexpected
 from ..db.base import Base
 from ..local_async import LocalOperations
 from ..models import CountResponse, DeleteResponse, FilterRequest, LookupResponse, OrderBy
@@ -275,12 +275,12 @@ def create_table_router[T: Base, ResponseT: BaseModel, CreateT: BaseModel](
     # READ endpoints
     @router.get("/get_row/{row_id}", response_model=response_model)
     async def get_row(
-        row_id: int,
+        row_id: str,
     ) -> ResponseT:
         """Get a single row by ID.
 
         Path Parameters:
-            row_id (int): Row ID
+            row_id (str): Row ID (integer or UUID)
 
         Returns:
             200: Row data
@@ -288,7 +288,7 @@ def create_table_router[T: Base, ResponseT: BaseModel, CreateT: BaseModel](
             500: Internal server error
         """
         try:
-            result = await operations.get_row(row_id)
+            result = await operations.get_row(parse_row_id(row_id))
             if result is None:
                 raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Resource not found")
             return result
@@ -300,19 +300,19 @@ def create_table_router[T: Base, ResponseT: BaseModel, CreateT: BaseModel](
 
     @router.get("/get_row_or_none/{row_id}", response_model=response_model | None)
     async def get_row_or_none(
-        row_id: int,
+        row_id: str,
     ) -> ResponseT | None:
         """Get a single row by ID or None if not found.
 
         Path Parameters:
-            row_id (int): Row ID
+            row_id (str): Row ID (integer or UUID)
 
         Returns:
             200: Row data or null
             500: Internal server error
         """
         try:
-            result = await operations.get_row_or_none(row_id)
+            result = await operations.get_row_or_none(parse_row_id(row_id))
             return result
         except Exception as uexc:
             logger.exception("Error getting row or none")
@@ -412,7 +412,7 @@ def create_table_router[T: Base, ResponseT: BaseModel, CreateT: BaseModel](
 
     @router.get("/lookup_by_id_or_name", response_model=LookupResponse[ResponseT])
     async def lookup_by_id_or_name(
-        id_: int | None = Query(None, description="Row ID"),
+        id_: str | None = Query(None, description="Row ID (integer or UUID)"),
         name: str | None = Query(None, description="Row name"),
     ) -> LookupResponse[ResponseT]:
         """Lookup by ID or name.
@@ -437,7 +437,8 @@ def create_table_router[T: Base, ResponseT: BaseModel, CreateT: BaseModel](
             )
 
         try:
-            resolved_id, result = await operations.lookup_by_id_or_name(id_, name)  # type: ignore
+            parsed_id: RowId | None = parse_row_id(id_) if id_ is not None else None
+            resolved_id, result = await operations.lookup_by_id_or_name(parsed_id, name)  # type: ignore
 
             if result is None:
                 raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Resource not found")
@@ -453,13 +454,13 @@ def create_table_router[T: Base, ResponseT: BaseModel, CreateT: BaseModel](
     @router.put("/update_row/{row_id}", response_model=response_model)
     @router.patch("/update_row/{row_id}", response_model=response_model)
     async def update_row(
-        row_id: int,
+        row_id: str,
         data: dict = Body(...),
     ) -> ResponseT:
         """Update a single row.
 
         Path Parameters:
-            row_id (int): Row ID
+            row_id (str): Row ID (integer or UUID)
 
         Request Body:
             JSON object with fields to update
@@ -471,7 +472,7 @@ def create_table_router[T: Base, ResponseT: BaseModel, CreateT: BaseModel](
             500: Internal server error
         """
         try:
-            result = await operations.update_row(row_id, **data)
+            result = await operations.update_row(parse_row_id(row_id), **data)
             if result is None:
                 raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Resource not found")
             return result
@@ -531,14 +532,14 @@ def create_table_router[T: Base, ResponseT: BaseModel, CreateT: BaseModel](
     # DELETE endpoints
     @router.delete("/delete_row/{row_id}", response_model=response_model | DeleteResponse)
     async def delete_row(
-        row_id: int,
+        row_id: str,
         *,
         capture_data: bool = Query(default=True, description="Whether to return deleted row data"),
     ) -> ResponseT | DeleteResponse:
         """Delete a single row.
 
         Path Parameters:
-            id (int): Row ID
+            row_id (str): Row ID (integer or UUID)
 
         Query Parameters:
             capture_data (bool): Whether to return deleted row data (default: true)
@@ -549,7 +550,7 @@ def create_table_router[T: Base, ResponseT: BaseModel, CreateT: BaseModel](
             500: Internal server error
         """
         try:
-            result = await operations.delete_row(row_id, capture_data=capture_data)
+            result = await operations.delete_row(parse_row_id(row_id), capture_data=capture_data)
 
             if result is None and capture_data:
                 raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Resource not found")
@@ -565,14 +566,14 @@ def create_table_router[T: Base, ResponseT: BaseModel, CreateT: BaseModel](
 
     @router.delete("/delete_rows", response_model=list[ResponseT] | CountResponse)
     async def delete_rows(
-        data: list[int] = Body(...),
+        data: list[int | str] = Body(...),
         *,
         capture_data: bool = Query(default=False, description="Whether to return deleted row data"),
     ) -> list[ResponseT] | CountResponse:
         """Delete multiple rows.
 
         Request Body:
-            JSON array of row IDs
+            JSON array of row IDs (integers or UUID strings)
 
         Query Parameters:
             capture_data (bool): Whether to return deleted row data (default: false)
@@ -587,15 +588,10 @@ def create_table_router[T: Base, ResponseT: BaseModel, CreateT: BaseModel](
                 status_code=status.HTTP_400_BAD_REQUEST, detail="Cannot delete more than 10000 rows at once"
             )
 
-        # Validate all IDs are integers
-        for i, item in enumerate(data):
-            if unexpected(not isinstance(item, int)):
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST, detail=f"Item at index {i} is not an integer"
-                )
+        parsed_ids: list[RowId] = [parse_row_id(str(item)) for item in data]
 
         try:
-            result = await operations.delete_rows(data, capture_data=capture_data)
+            result = await operations.delete_rows(parsed_ids, capture_data=capture_data)
             if capture_data:
                 if result is None:
                     raise HTTPException(
@@ -609,11 +605,11 @@ def create_table_router[T: Base, ResponseT: BaseModel, CreateT: BaseModel](
             raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(uexc)) from uexc
 
     @router.delete("/bulk_delete_rows", response_model=CountResponse)
-    async def bulk_delete_rows(data: list[int] = Body(...)) -> CountResponse:
+    async def bulk_delete_rows(data: list[int | str] = Body(...)) -> CountResponse:
         """Bulk delete rows (returns count only).
 
         Request Body:
-            JSON array of row IDs
+            JSON array of row IDs (integers or UUID strings)
 
         Returns:
             200: Object with count of deleted rows
@@ -626,15 +622,10 @@ def create_table_router[T: Base, ResponseT: BaseModel, CreateT: BaseModel](
                 detail="Cannot bulk delete more than 100000 rows at once",
             )
 
-        # Validate all IDs are integers
-        for i, item in enumerate(data):
-            if unexpected(not isinstance(item, int)):
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST, detail=f"Item at index {i} is not an integer"
-                )
+        parsed_ids: list[RowId] = [parse_row_id(str(item)) for item in data]
 
         try:
-            count = await operations.bulk_delete_rows(data)
+            count = await operations.bulk_delete_rows(parsed_ids)
             return CountResponse(count=count)
         except Exception as uexc:
             logger.exception("Error bulk deleting rows")

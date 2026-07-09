@@ -1,5 +1,6 @@
 """Responsex model for load_catalog_yaml function."""
 
+import uuid
 from typing import TypeVar
 
 from pydantic import BaseModel
@@ -26,7 +27,7 @@ class CountResponse(BaseModel):
 class LookupResponse[ResponseT](BaseModel):
     """Response model for lookup operations."""
 
-    id: int
+    id: int | uuid.UUID
     data: ResponseT
 
 
