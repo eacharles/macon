@@ -12,6 +12,7 @@ from ..client.base import (
     RemoteAPI,
     RemoteTableOperations,
 )
+from ..common import RowId
 
 # Type variables
 ResponseT = TypeVar("ResponseT", bound=BaseModel)
@@ -333,7 +334,7 @@ class AsyncRemoteOperations[ResponseT: BaseModel, CreateT: BaseModel]:
         client: RemoteTableOperations[ResponseT, CreateT],
         *args: Any,
         **kwargs: Any,
-    ) -> tuple[int, ResponseT]:
+    ) -> tuple[RowId, ResponseT]:
         return await client.lookup_by_id_or_name(*args, **kwargs)
 
     # UPDATE operations

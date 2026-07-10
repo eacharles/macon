@@ -28,7 +28,7 @@ class TestRefOperations(TableOperations[db.TestRef, models.TestRef, models.TestR
     async def get_create_kwargs(
         self,
         session: AsyncSession,
-        ref_id: int | None = None,
+        ref_id: RowId | None = None,
         ref_name: str | None = None,
         **extra_kwargs: Any,
     ) -> dict[str, Any]:
