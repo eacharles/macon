@@ -9,6 +9,7 @@ from typing import Any
 
 from pydantic import BaseModel
 
+from ..common import RowId
 from ..db.base import Base
 from ..db.session import get_session
 from ..db_oper.base import TableOperations
@@ -237,11 +238,11 @@ class LocalOperations[T: Base, ResponseT: BaseModel, CreateT: BaseModel]:
     async def lookup_by_id_or_name(
         self,
         session: Any,
-        row_id: int | None,
+        row_id: RowId | None,
         name: str | None,
         *,
         need_object: bool = True,
-    ) -> tuple[int, ResponseT | None]:
+    ) -> tuple[RowId, ResponseT | None]:
         row_id_resolved, row = await self._table_ops.lookup_by_id_or_name(
             session,
             row_id,

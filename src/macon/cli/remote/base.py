@@ -7,7 +7,7 @@ from typing import TypeVar, Any
 import click
 from pydantic import BaseModel, ValidationError
 
-from ...common import unexpected
+from ...common import parse_row_id, unexpected
 from ...models import Filter, FilterOp, OrderBy
 from ...models.utils import OutputEnum, output_pydantic
 from ...remote_sync.base import SyncRemoteOperations
@@ -99,14 +99,14 @@ class CliRemoteOperations[ResponseT: BaseModel, CreateT: BaseModel]:
 
         @self.group.command(name="get-row", help=f"Get a single {self.table_name} row by ID")
         @common_options.output()
-        @click.argument("row_id", type=int)
+        @click.argument("row_id", type=str)
         def command(
             output: OutputEnum,
-            row_id: int,
+            row_id: str,
         ) -> None:
             """Get a single row by ID."""
             try:
-                row = self.sync_oper.get_row(row_id=row_id)  # type: ignore
+                row = self.sync_oper.get_row(row_id=parse_row_id(row_id))  # type: ignore
                 print(output_pydantic([row], output, self.col_names_for_table))
 
             except Exception as uexc:
@@ -183,14 +183,14 @@ class CliRemoteOperations[ResponseT: BaseModel, CreateT: BaseModel]:
             help=f"Get a {self.table_name} row by ID (returns nothing if not found)",
         )
         @common_options.output()
-        @click.argument("row_id", type=int)
+        @click.argument("row_id", type=str)
         def command(
             output: OutputEnum,
-            row_id: int,
+            row_id: str,
         ) -> None:
             """Get a single row by ID, or nothing if not found."""
             try:
-                row = self.sync_oper.get_row_or_none(row_id=row_id)  # type: ignore
+                row = self.sync_oper.get_row_or_none(row_id=parse_row_id(row_id))  # type: ignore
 
                 if row is None:
                     click.echo(f"No {self.table_name} found with ID {row_id}")
@@ -224,11 +224,11 @@ class CliRemoteOperations[ResponseT: BaseModel, CreateT: BaseModel]:
 
         @self.group.command(name="lookup", help=f"Look up a {self.table_name} row by ID or name")
         @common_options.output()
-        @click.option("--id", "row_id", type=int, help="Row ID to look up")
+        @click.option("--id", "row_id", type=str, help="Row ID to look up (integer or UUID)")
         @click.option("--name", type=str, help="Row name to look up")
         def command(
             output: OutputEnum,
-            row_id: int | None,
+            row_id: str | None,
             name: str | None,
         ) -> None:
             """Look up a row by either ID or name."""
@@ -238,7 +238,8 @@ class CliRemoteOperations[ResponseT: BaseModel, CreateT: BaseModel]:
                 raise click.Abort()
 
             try:
-                _found_id, row = self.sync_oper.lookup_by_id_or_name(row_id=row_id, name=name)  # type: ignore
+                parsed_id = parse_row_id(row_id) if row_id is not None else None
+                _found_id, row = self.sync_oper.lookup_by_id_or_name(row_id=parsed_id, name=name)  # type: ignore
                 print(output_pydantic([row], output, self.col_names_for_table))
 
             except Exception as uexc:
@@ -514,12 +515,12 @@ class CliRemoteOperations[ResponseT: BaseModel, CreateT: BaseModel]:
         @click.option(
             "--from-json", type=click.Path(exists=True), help="Path to JSON file containing update data"
         )
-        @click.argument("row_id", type=int)
+        @click.argument("row_id", type=str)
         @click.argument("fields", nargs=-1)
         def command(
             output: OutputEnum,
             from_json: str | None,
-            row_id: int,
+            row_id: str,
             fields: tuple[str, ...],
         ) -> None:
             """Update a single row by ID.
@@ -560,13 +561,15 @@ class CliRemoteOperations[ResponseT: BaseModel, CreateT: BaseModel]:
                 click.echo("Error: No update data provided. Use KEY=VALUE arguments or --from-json", err=True)
                 raise click.Abort()
 
+            parsed_id = parse_row_id(row_id)
+
             # Prevent ID changes
-            if "id" in update_data and update_data["id"] != row_id:
+            if "id" in update_data and update_data["id"] != parsed_id:
                 click.echo(f"Error: Cannot change row ID from {row_id} to {update_data['id']}", err=True)
                 raise click.Abort()
 
             try:
-                row = self.sync_oper.update_row(row_id=row_id, **update_data)  # type: ignore
+                row = self.sync_oper.update_row(row_id=parsed_id, **update_data)  # type: ignore
                 click.echo(f"Successfully updated {self.table_name} row with ID {row_id}")
                 print(output_pydantic([row], output, self.col_names_for_table))
 
@@ -659,13 +662,13 @@ class CliRemoteOperations[ResponseT: BaseModel, CreateT: BaseModel]:
         @common_options.output()
         @click.option("--no-capture", is_flag=True, help="Do not capture deleted row data (faster)")
         @click.option("--confirm", is_flag=True, help="Skip confirmation prompt")
-        @click.argument("row_id", type=int)
+        @click.argument("row_id", type=str)
         def command(
             output: OutputEnum,
             *,
             no_capture: bool,
             confirm: bool,
-            row_id: int,
+            row_id: str,
         ) -> None:
             """Delete a single row by ID.
 
@@ -680,7 +683,9 @@ class CliRemoteOperations[ResponseT: BaseModel, CreateT: BaseModel]:
                     return
 
             try:
-                deleted_data = self.sync_oper.delete_row(row_id=row_id, capture_data=not no_capture)  # type: ignore
+                deleted_data = self.sync_oper.delete_row(  # type: ignore
+                    row_id=parse_row_id(row_id), capture_data=not no_capture
+                )
 
                 click.echo(f"Successfully deleted {self.table_name} row with ID {row_id}")
 
@@ -707,14 +712,14 @@ class CliRemoteOperations[ResponseT: BaseModel, CreateT: BaseModel]:
             type=click.Path(exists=True),
             help="Path to file containing row IDs (one per line or JSON array)",
         )
-        @click.argument("row_ids", nargs=-1, type=int)
+        @click.argument("row_ids", nargs=-1, type=str)
         def command(
             output: OutputEnum,
             *,
             capture_data: bool,
             confirm: bool,
             from_file: str | None,
-            row_ids: tuple[int, ...],
+            row_ids: tuple[str, ...],
         ) -> None:
             """Delete multiple rows by IDs.
 
@@ -737,18 +742,21 @@ class CliRemoteOperations[ResponseT: BaseModel, CreateT: BaseModel]:
 
                     # Try JSON first
                     try:
-                        ids_list = json.loads(content)
-                        if not isinstance(ids_list, list):
+                        parsed = json.loads(content)
+                        if not isinstance(parsed, list):
                             raise ValueError("JSON must be an array")
+                        ids_list = [parse_row_id(str(item)) for item in parsed]
                     except json.JSONDecodeError:
                         # Parse as line-separated IDs
-                        ids_list = [int(line.strip()) for line in content.split("\n") if line.strip()]
+                        ids_list = [
+                            parse_row_id(line.strip()) for line in content.split("\n") if line.strip()
+                        ]
 
                 except (OSError, ValueError) as exc:
                     click.echo(f"Error reading file: {exc}", err=True)
                     raise click.Abort()
             else:
-                ids_list = list(row_ids)
+                ids_list = [parse_row_id(rid) for rid in row_ids]
 
             if not ids_list:
                 click.echo("Error: No IDs provided. Use arguments or --from-file", err=True)
@@ -792,12 +800,12 @@ class CliRemoteOperations[ResponseT: BaseModel, CreateT: BaseModel]:
             type=click.Path(exists=True),
             help="Path to file containing row IDs (one per line or JSON array)",
         )
-        @click.argument("row_ids", nargs=-1, type=int)
+        @click.argument("row_ids", nargs=-1, type=str)
         def command(
             *,
             confirm: bool,
             from_file: str | None,
-            row_ids: tuple[int, ...],
+            row_ids: tuple[str, ...],
         ) -> None:
             """Bulk delete rows by IDs (high performance).
 
@@ -821,18 +829,21 @@ class CliRemoteOperations[ResponseT: BaseModel, CreateT: BaseModel]:
 
                     # Try JSON first
                     try:
-                        ids_list = json.loads(content)
-                        if not isinstance(ids_list, list):
+                        parsed = json.loads(content)
+                        if not isinstance(parsed, list):
                             raise ValueError("JSON must be an array")
+                        ids_list = [parse_row_id(str(item)) for item in parsed]
                     except json.JSONDecodeError:
                         # Parse as line-separated IDs
-                        ids_list = [int(line.strip()) for line in content.split("\n") if line.strip()]
+                        ids_list = [
+                            parse_row_id(line.strip()) for line in content.split("\n") if line.strip()
+                        ]
 
                 except (OSError, ValueError) as exc:
                     click.echo(f"Error reading file: {exc}", err=True)
                     raise click.Abort()
             else:
-                ids_list = list(row_ids)
+                ids_list = [parse_row_id(rid) for rid in row_ids]
 
             if not ids_list:
                 click.echo("Error: No IDs provided. Use arguments or --from-file", err=True)

@@ -6,6 +6,7 @@ import structlog
 from sqlalchemy import delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from ..common import RowId
 from ..db.base import T, ensure_base_inheritance
 
 logger = structlog.get_logger(__name__)
@@ -14,7 +15,7 @@ logger = structlog.get_logger(__name__)
 async def delete_row(
     the_class: type[T],
     session: AsyncSession,
-    row_id: int,
+    row_id: RowId,
     *,
     capture_data: bool = True,
 ) -> dict[str, Any] | None:
@@ -63,7 +64,7 @@ async def delete_row(
 async def delete_rows(
     the_class: type[T],
     session: AsyncSession,
-    row_ids: list[int],
+    row_ids: list[RowId],
     *,
     capture_data: bool = False,
 ) -> list[dict[str, Any]] | None:
@@ -127,7 +128,7 @@ async def delete_rows(
 async def bulk_delete_rows(
     the_class: type[T],
     session: AsyncSession,
-    row_ids: list[int],
+    row_ids: list[RowId],
 ) -> int:
     """Delete multiple rows using bulk SQL operation.
 

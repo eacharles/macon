@@ -33,6 +33,7 @@ Example Hook Implementation:
     ...             logger.warning(f"Cache update failed: {e}")
 """
 
+import uuid
 from abc import abstractmethod
 from typing import Any, ClassVar, TypeVar
 
@@ -71,7 +72,7 @@ class Base(DeclarativeBase):
     in the row lifecycle.
     """
 
-    id_: Mapped[int] | None = None
+    id_: Mapped[int] | Mapped[uuid.UUID] | None = None
     name: Mapped[str] | None = None
 
     # Default pagination limit - subclasses can override via get_pagination_limit()

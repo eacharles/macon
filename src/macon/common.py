@@ -1,11 +1,22 @@
 """Common utilities and functions"""
 
 import shutil
+import uuid
 from enum import Enum
 from pathlib import Path
 from typing import Any
 
 from .config import config as global_config
+
+RowId = int | uuid.UUID
+
+
+def parse_row_id(value: str) -> "RowId":
+    """Parse a string into an int or UUID primary key."""
+    try:
+        return int(value)
+    except ValueError:
+        return uuid.UUID(value)
 
 
 class LoadType(Enum):

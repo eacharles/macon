@@ -1,5 +1,6 @@
 """Pydantic model for the Band"""
 
+import uuid
 from typing import ClassVar
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationInfo, field_validator
@@ -135,3 +136,23 @@ class TestTable(BaseModel):
     name: str
     path: str
     n_objects: int
+
+
+class TestUUIDCreate(BaseModel):
+    """Parameters used to create a new TestUUID row."""
+
+    name: str = Field(..., description="Unique name for this row")
+
+
+class TestUUID(BaseModel):
+    """Response model for a UUID-keyed test table."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    col_names_for_table: ClassVar[list[str]] = [
+        "id_",
+        "name",
+    ]
+
+    id_: uuid.UUID
+    name: str

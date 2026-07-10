@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..db.base import T, ensure_base_inheritance
 
-from ..common import unexpected
+from ..common import RowId, unexpected
 
 logger = structlog.get_logger(__name__)
 
@@ -16,7 +16,7 @@ logger = structlog.get_logger(__name__)
 async def update_row(
     the_class: type[T],
     session: AsyncSession,
-    row_id: int,
+    row_id: RowId,
     **kwargs: Any,
 ) -> T:
     """Update a single row by primary key.

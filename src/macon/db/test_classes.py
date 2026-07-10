@@ -1,8 +1,11 @@
 """Database models for test tables."""
 
+import uuid
+
+import uuid_utils
 from pydantic import BaseModel
 from sqlalchemy import ForeignKey
-from sqlalchemy import JSON, Integer, String
+from sqlalchemy import JSON, Integer, String, Uuid
 from sqlalchemy.orm import Mapped, mapped_column
 
 from .. import models
@@ -300,6 +303,41 @@ class TestTable(Base):
 
     def __repr__(self) -> str:
         return f"TestTable(id_={self.id_}, name='{self.name}', n_objects={self.n_objects})"
+
+    def __str__(self) -> str:
+        return self.name
+
+
+class TestUUID(Base):
+    """Test class for tables with UUID7 primary keys.
+
+    Attributes
+    ----------
+    id_ : uuid.UUID
+        Primary key, UUID7 generated automatically
+    name : str
+        Unique name for this row
+    """
+
+    __tablename__ = "test_uuid"
+
+    id_: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid_utils.uuid7)
+    name: Mapped[str] = mapped_column(String(255), index=True, unique=True)
+
+    @classmethod
+    def pydantic_create_class(cls) -> type[BaseModel]:
+        return models.TestUUIDCreate
+
+    @classmethod
+    def pydantic_model_class(cls) -> type[BaseModel]:
+        return models.TestUUID
+
+    @classmethod
+    def class_string(cls) -> str:
+        return cls.__tablename__
+
+    def __repr__(self) -> str:
+        return f"TestUUID(id_={self.id_}, name='{self.name}')"
 
     def __str__(self) -> str:
         return self.name

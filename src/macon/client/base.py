@@ -12,7 +12,7 @@ import httpx
 from pydantic import BaseModel, ValidationError
 
 from ..config import config as global_config
-from ..common import unexpected, LoadType
+from ..common import RowId, unexpected, LoadType
 from ..models import CountResponse, Filter, FilterRequest, LookupResponse, OrderBy, RemoteAPIError
 
 # Configure logging
@@ -221,7 +221,7 @@ class RemoteTableOperations[ResponseT: BaseModel, CreateT: BaseModel]:
 
     # READ operations
 
-    async def get_row(self, row_id: int) -> ResponseT:
+    async def get_row(self, row_id: RowId) -> ResponseT:
         """Get a single row by ID.
 
         Parameters
@@ -243,7 +243,7 @@ class RemoteTableOperations[ResponseT: BaseModel, CreateT: BaseModel]:
         result = cast(dict[str, Any], self._handle_response(response))
         return self.response_model(**result)
 
-    async def get_row_or_none(self, row_id: int) -> ResponseT | None:
+    async def get_row_or_none(self, row_id: RowId) -> ResponseT | None:
         """Get a single row by ID or None if not found.
 
         Parameters
@@ -398,9 +398,9 @@ class RemoteTableOperations[ResponseT: BaseModel, CreateT: BaseModel]:
 
     async def lookup_by_id_or_name(
         self,
-        id_: int | None = None,
+        id_: RowId | None = None,
         name: str | None = None,
-    ) -> tuple[int, ResponseT]:
+    ) -> tuple[RowId, ResponseT]:
         """Lookup by ID or name.
 
         Parameters
@@ -436,7 +436,7 @@ class RemoteTableOperations[ResponseT: BaseModel, CreateT: BaseModel]:
 
     # UPDATE operations
 
-    async def update_row(self, row_id: int, **data: Any) -> ResponseT:
+    async def update_row(self, row_id: RowId, **data: Any) -> ResponseT:
         """Update a single row.
 
         Parameters
@@ -492,7 +492,7 @@ class RemoteTableOperations[ResponseT: BaseModel, CreateT: BaseModel]:
 
     # DELETE operations
 
-    async def delete_row(self, row_id: int, *, capture_data: bool = True) -> ResponseT | None:
+    async def delete_row(self, row_id: RowId, *, capture_data: bool = True) -> ResponseT | None:
         """Delete a single row.
 
         Parameters
@@ -525,7 +525,7 @@ class RemoteTableOperations[ResponseT: BaseModel, CreateT: BaseModel]:
 
     async def delete_rows(
         self,
-        ids: list[int],
+        ids: list[RowId],
         *,
         capture_data: bool = False,
     ) -> list[ResponseT] | int:
@@ -547,10 +547,11 @@ class RemoteTableOperations[ResponseT: BaseModel, CreateT: BaseModel]:
         RemoteAPIError
             If the API request fails
         """
+        serialized_ids = [str(id_) if not isinstance(id_, int) else id_ for id_ in ids]
         response = await self.client.request(
             "DELETE",
             f"{self.endpoint}/delete_rows",
-            json=ids,
+            json=serialized_ids,
             params={"capture_data": capture_data},
         )
 
@@ -560,7 +561,7 @@ class RemoteTableOperations[ResponseT: BaseModel, CreateT: BaseModel]:
             return [self.response_model(**item) for item in cast(list[dict[str, Any]], result)]
         return CountResponse(**cast(dict[str, Any], result)).count
 
-    async def bulk_delete_rows(self, ids: list[int]) -> int:
+    async def bulk_delete_rows(self, ids: list[RowId]) -> int:
         """Bulk delete rows (returns count only).
 
         Parameters
@@ -577,10 +578,11 @@ class RemoteTableOperations[ResponseT: BaseModel, CreateT: BaseModel]:
         RemoteAPIError
             If the API request fails
         """
+        serialized_ids = [str(id_) if not isinstance(id_, int) else id_ for id_ in ids]
         response = await self.client.request(
             "DELETE",
             f"{self.endpoint}/bulk_delete_rows",
-            json=ids,
+            json=serialized_ids,
         )
 
         result = cast(dict[str, Any], self._handle_response(response))
@@ -1092,7 +1094,7 @@ class RemoteFileOperations[ResponseT: BaseModel, CreateT: BaseModel](
 
     async def download(
         self,
-        row_id: int,
+        row_id: RowId,
         output_path: Path | str | None = None,
     ) -> Path:
         """Download a file.

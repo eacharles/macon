@@ -1,6 +1,7 @@
 from typing import TYPE_CHECKING, Any
 
 from .. import db, models
+from ..common import RowId
 from .base import LocalOperations, with_session
 
 if TYPE_CHECKING:
@@ -32,7 +33,7 @@ class TestTableLocalOperations(LocalOperations[db.TestTable, models.TestTable, m
     async def read_slice(
         self,
         session: Any,
-        row_id: int,
+        row_id: RowId,
         the_slice: slice | int | None = None,
     ) -> dict[str, Any]:
         return await self._typed_ops.read_slice(session, row_id, the_slice)
